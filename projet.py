@@ -7,7 +7,7 @@ def read_matrix(input):
     with open(input,'r') as fin:
         matrix = []
         while True:
-            tmp=fin.readline().rsplit(",")
+            tmp=fin.readline().strip().split(",")
             if tmp==[""]:
                 break
             matrix.append(list(map(int,tmp)))
