@@ -121,11 +121,20 @@ for _ in range(10000):
         best_mask=mask
 
 U,S,Vh=np.linalg.svd(sqrt_matrix*mask)
-S = np.array([S[i] if i < len(S) else 0 for i in range(m)])
 S = np.diag(S)
 
-# print(((U*S)@Vh)**2)
-# print(min_rank)
-# print(best_S)
-# print(best_mask)
+padded_matrix = np.zeros((m, n))  # Create an m x n zero matrix
+# Copy the diagonal matrix into the top-left corner of the padded matrix
+rows, cols = S.shape
+padded_matrix[:rows, :cols] = S
+
+print(((U*S)@Vh)**2)
+print(min_rank)
+print(best_S)
+print(best_mask)
+
+if np.allclose((((U*S)@Vh)**2), matrix, atol=1e-8):
+    print('True')
+else:
+    print('False')
 
