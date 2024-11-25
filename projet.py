@@ -66,6 +66,30 @@ def generate_random_square_matrix(m, n):
 #%%
 matrix = read_matrix("input.txt")
 
+
+def generate_random_square_matrix(m, n):
+    # Calculer combien d'éléments sont nécessaires
+    num_elements = m * n
+    
+    # Générer k aléatoires pour obtenir des carrés parfaits
+    # Ici, on choisit des k entre 1 et 100 pour les carrés parfaits
+    random_k_values = random.choices(range(1, 15), k=num_elements)
+    
+    # Calculer les carrés parfaits
+    squares = [k**2 for k in random_k_values]
+    
+    # Remplir la matrice avec ces carrés parfaits
+    matrix = np.array(squares).reshape(m, n)
+    
+    return matrix
+
+# Exemple d'utilisation
+m, n = 10,15
+matrix = generate_random_square_matrix(m, n)
+print(matrix)
+
+
+
 a=matrix.shape
 
 mask = setup_mask(a)
@@ -75,20 +99,19 @@ sqrt_matrix=setup_sqrt_matrix(matrix)
 matrices = {}
 
 #%%
-min_rank=5
+min_rank=10
 best_S=np.zeros(a)
 best_mask=np.zeros(a)
-for _ in range(2000):
-    mask=swap(mask,random.randint(0,mask.shape[0]**2-1),a)
-    S=np.linalg.svd(sqrt_matrix*mask)[1]
-    rank=count_nonzero(S)
-    
-    matrix_hash = hash_matrix(matrix)
+for _ in range(10000):
+    mask=swap(mask,random.randint(0,mask.shape[0]*mask.shape[1]-1),a)
+    matrix_hash = hash_matrix(mask)
 
     # Vérifier si la matrice existe déjà dans le dictionnaire via son hash
     if matrix_hash not in matrices:
         matrices[matrix_hash] = matrix  # Stocker la matrice seulement si elle est nouvelle
         print("Nouvelle matrice ajoutée.")
+        S=np.linalg.svd(sqrt_matrix*mask)[1]
+        rank=count_nonzero(S)
     else:
         print("Matrice déjà existante.")
         
@@ -98,8 +121,20 @@ for _ in range(2000):
         best_mask=mask
 
 U,S,Vh=np.linalg.svd(sqrt_matrix*mask)
+S = np.diag(S)
+
+padded_matrix = np.zeros((m, n))  # Create an m x n zero matrix
+# Copy the diagonal matrix into the top-left corner of the padded matrix
+rows, cols = S.shape
+padded_matrix[:rows, :cols] = S
+
 print(((U*S)@Vh)**2)
 print(min_rank)
 print(best_S)
 print(best_mask)
+
+if np.allclose((((U*S)@Vh)**2), matrix, atol=1e-8):
+    print('True')
+else:
+    print('False')
 
