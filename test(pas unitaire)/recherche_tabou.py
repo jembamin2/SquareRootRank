@@ -34,7 +34,7 @@ def read_matrix(input):
     return np.array(matrix)
 
 def voisinage(masks, matrix, mask, r):
-    best_mask = mask
+    best_mask = mask.copy()
     best_r = r
     for i in range(matrix.shape[0]):
         for j in range(matrix.shape[1]):
@@ -79,12 +79,11 @@ def recherche_tabou(matrix, r):
     i = 0
     matrices, best_mask, best_rank = voisinage(masks, sqrt_matrix, mask, rank)
             
-    #while i < matrix.shape[0] * matrix.shape[1]:
-    while i < 2:
-        if best_rank >= r:
-            print(i)
-            matrices, best_mask, best_rank = voisinage(masks, sqrt_matrix, best_mask, best_rank)
-            i+=1
+
+    if best_rank >= r:
+        print(i)
+        matrices, best_mask, best_rank = voisinage(masks, sqrt_matrix, best_mask, best_rank)
+        i+=1
     print(best_mask)
     return best_mask, best_rank
 
