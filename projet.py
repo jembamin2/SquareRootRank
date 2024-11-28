@@ -10,6 +10,8 @@ import hashlib
 def read_matrix(input):
     with open(input,'r') as fin:
         matrix = []
+        n, m =map(int,fin.readline().strip().split())
+
         while True:
             tmp=fin.readline().strip().split(",")
             if tmp==[""]:
