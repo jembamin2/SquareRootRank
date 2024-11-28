@@ -45,7 +45,7 @@ def swap(mask, shape,num_actions):
     return mask
 
 
-def evaluate_matrix(matrix, tol=1e-10):
+def evaluate_matrix(matrix, tol=1e-14):
     # Décomposer la matrice en valeurs singulières
     U, singular_values, V = svd(matrix)
     # Calculer le rang (nombre de valeurs singulières > tolérance)
@@ -62,7 +62,7 @@ def optimize_matrix(sqrt_matrix, mask, num_iterations,num_swap):
     best_mask = mask.copy()
     best_rank = float('inf')  # Initialiser avec un rang très élevé
     best_singular = float('inf')  # Initialiser avec une valeur singulière très élevée
-    best_significant_singular_values = []  # Liste pour stocker les meilleures valeurs singulières
+    best_significant_singular_values = [float('inf')]  # Liste pour stocker les meilleures valeurs singulières
 
     for iteration in range(num_iterations):
         # Générer un masque aléatoire en inversant un élément au hasard
@@ -75,7 +75,7 @@ def optimize_matrix(sqrt_matrix, mask, num_iterations,num_swap):
         rank, smallest_singular, significant_singular_values, U, V,test = evaluate_matrix(test_matrix)
         
         # Mettre à jour les meilleurs résultats si nécessaire
-        if (rank < best_rank) or (rank == best_rank and smallest_singular < best_singular):
+        if (rank < best_rank) or (rank == best_rank and  significant_singular_values[-1 ]< best_significant_singular_values[-1]):
             best_mask = new_mask.copy()
             best_rank = rank
             best_singular = smallest_singular
@@ -111,8 +111,13 @@ def validate_solution(original_matrix, reformed_matrix):
 #%% 
 start = time.time()
 
-matrix = read_matrix("ledm6_matrice.txt")
+matrix = (np.random.rand(7,3)*10)@(np.random.rand(3,7)*10)
+matrix = matrix**2
+
+# matrix = read_matrix("ledm6_matrice.txt")
 shape = matrix.shape
+
+
 
 mask = setup_mask(shape)
 sqrt_matrix = setup_sqrt_matrix(matrix)
@@ -120,7 +125,7 @@ sqrt_matrix = setup_sqrt_matrix(matrix)
 #Définit le nombre de valeurs à changer par itérations
 num_swap=2
 
-num_iterations = 1000000
+num_iterations = 100000
 best_mask, best_rank, best_singular, best_significant_singular_values, best_U, best_V,btest = optimize_matrix(sqrt_matrix, mask, num_iterations,num_swap)
 
 print("Best rank:", best_rank)
