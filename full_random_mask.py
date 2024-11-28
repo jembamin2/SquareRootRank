@@ -9,6 +9,7 @@ import numpy as np
 import math
 import random
 import time
+from tqdm import tqdm
 
 from numpy.linalg import svd
 
@@ -64,7 +65,7 @@ def optimize_matrix(sqrt_matrix, mask, num_iterations,num_swap):
     best_singular = float('inf')  # Initialiser avec une valeur singulière très élevée
     best_significant_singular_values = []  # Liste pour stocker les meilleures valeurs singulières
 
-    for iteration in range(num_iterations):
+    for iteration in tqdm(range(num_iterations)):
         # Générer un masque aléatoire en inversant un élément au hasard
         new_mask = swap(mask, mask.shape,num_swap)
         
@@ -111,7 +112,7 @@ def validate_solution(original_matrix, reformed_matrix):
 #%% 
 start = time.time()
 
-matrix = read_matrix("ledm6_matrice.txt")
+matrix = read_matrix("correl5_matrice.txt")
 shape = matrix.shape
 
 mask = setup_mask(shape)
