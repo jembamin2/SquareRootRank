@@ -14,6 +14,15 @@ from tqdm import tqdm
 from numpy.linalg import svd
 
 
+def LEDM (n,m):
+    M=np.zeros((n,m))
+    
+    for i in range(n):
+        for j in range(m):
+            M[i,j]=(i-j)**2
+    return M
+
+
 def read_matrix(input_file):
     with open(input_file, 'r') as fin:
         matrix = []
@@ -86,7 +95,7 @@ def optimize_matrix(sqrt_matrix, mask, num_iterations,num_swap):
         
         mask=new_mask.copy()
         # Affichage des résultats intermédiaires
-        print(f"{iteration}: rank={best_rank} smallest_singular={best_significant_singular_values[-1]}")
+        # print(f"{iteration}: rank={best_rank} smallest_singular={best_significant_singular_values[-1]}")
 
     # Retourner les meilleurs résultats trouvés
     return best_mask, best_rank, best_singular, best_significant_singular_values, best_U, best_V,btest
@@ -112,11 +121,14 @@ def validate_solution(original_matrix, reformed_matrix):
 #%% 
 start = time.time()
 
-matrix = (np.random.rand(7,3)*10)@(np.random.rand(3,7)*10)
-matrix = matrix**2
+matrix = LEDM(120, 120)
+# matrix = (np.random.rand(7,3)*10)@(np.random.rand(3,7)*10)
+# matrix = matrix**2
 
-matrix = read_matrix("ledm6_matrice.txt")
+# matrix = read_matrix("ledm6_matrice.txt")
 #matrix = read_matrix("correl5_matrice.txt")
+
+
 shape = matrix.shape
 
 
@@ -127,9 +139,10 @@ sqrt_matrix = setup_sqrt_matrix(matrix)
 #Définit le nombre de valeurs à changer par itérations
 num_swap=2
 
-num_iterations = 100000
+num_iterations = 5000
 best_mask, best_rank, best_singular, best_significant_singular_values, best_U, best_V,btest = optimize_matrix(sqrt_matrix, mask, num_iterations,num_swap)
 
+print()
 print("Best rank:", best_rank)
 print("Smallest singular value:", best_significant_singular_values[-1])
 

@@ -154,16 +154,16 @@ start = time.time()
 
 # matrix = read_matrix("input.txt")
 
-# matrix = LEDM(120, 120)
+matrix = LEDM(120, 120)
 
-matrix = (np.random.rand(7,3)*10)@(np.random.rand(3,7)*10)
-matrix = matrix**2
+# matrix = (np.random.rand(7,3)*10)@(np.random.rand(3,7)*10)
+# matrix = matrix**2
 
 shape = matrix.shape
 
 mask = setup_mask(shape)
 sqrt_matrix = setup_sqrt_matrix(matrix)
-num_iterations = 50000
+num_iterations = 10000
 best_mask, best_rank, best_singular, best_significant_singular_values, best_U, best_V,btest = optimize_matrix(sqrt_matrix, mask, num_iterations)
 print()
 print("Best rank:", best_rank)
