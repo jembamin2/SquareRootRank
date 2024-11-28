@@ -2,8 +2,20 @@ import numpy as np
 import math
 import random
 import time
+from tqdm import tqdm
+
 
 from numpy.linalg import svd
+
+def LEDM (n,m):
+    M=np.zeros((n,m))
+    
+    for i in range(n):
+        for j in range(m):
+            M[i,j]=(i-j)**2
+    return M
+
+
 
 
 def read_matrix(input_file):
@@ -51,10 +63,13 @@ def optimize_matrix(sqrt_matrix, mask, num_iterations):
     best_rank = float('inf')  # Initialiser avec un rang très élevé
     best_singular = float('inf')  # Initialiser avec une valeur singulière très élevée
     best_significant_singular_values = []  # Liste pour stocker les meilleures valeurs singulières
-
-    for iteration in range(num_iterations):
+    
+    
+    for iteration in tqdm(range(num_iterations)):
         # Générer un masque aléatoire en inversant un élément au hasard
-        new_mask = swap(mask.copy(), mask.shape)
+        
+        random_recuit = random.uniform(0, 1)
+        new_mask = swap(best_mask, mask.shape)
         
         # Appliquer le masque à la matrice
         test_matrix = sqrt_matrix * new_mask
@@ -70,8 +85,12 @@ def optimize_matrix(sqrt_matrix, mask, num_iterations):
             best_significant_singular_values = significant_singular_values
             best_U, best_V = U, V
             btest = test
+            continue
+        if random_recuit<0.07:
+            best_mask=-best_mask
         # Affichage des résultats intermédiaires
-        print(f"{iteration}: rank={rank} smallest_singular={smallest_singular}")
+        # print(f"{iteration}: rank={best_rank} smallest_singular={best_significant_singular_values[-1]}")
+        #print(f"{iteration}: rank={rank} smallest_singular={significant_singular_values[-1]}")
 
     # Retourner les meilleurs résultats trouvés
     return best_mask, best_rank, best_singular, best_significant_singular_values, best_U, best_V,btest
@@ -97,15 +116,22 @@ def validate_solution(original_matrix, reformed_matrix):
 #%% 
 start = time.time()
 
+
 matrix = read_matrix("input.txt")
+
+matrix = LEDM(120, 120)
+
+# matrix = (np.random.rand(7,3)*10)@(np.random.rand(3,7)*10)
+# matrix = matrix**2
+
 shape = matrix.shape
 
 mask = setup_mask(shape)
 sqrt_matrix = setup_sqrt_matrix(matrix)
 
-num_iterations = 1000000
+num_iterations = 5000
 best_mask, best_rank, best_singular, best_significant_singular_values, best_U, best_V,btest = optimize_matrix(sqrt_matrix, mask, num_iterations)
-
+print()
 print("Best rank:", best_rank)
 print("Smallest singular value:", best_significant_singular_values[-1])
 
