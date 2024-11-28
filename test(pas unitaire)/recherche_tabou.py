@@ -46,7 +46,7 @@ def voisinage(matrices, sqrt_matrix, mask, r, a):
                 rank = rankof(S)
                 S = np.diag(S)
                 
-                print(S)
+                #print(S)
                 #print(f"mask \n {mask}")
                 #print(f"rank {rank}")
                 #print(((U@S)@Vh)**2)
@@ -54,28 +54,21 @@ def voisinage(matrices, sqrt_matrix, mask, r, a):
                 if np.allclose((((U@S)@Vh))**2, sqrt_matrix**2, atol=1e-10):
                     print("yes")
                     if rank <= r:
-                        print(" new rank")
+                        print(f" new rank {rank}")
                         best_mask = mask
                         best_r = rank
                         
                 
-                if ( i==a[0] and j == a[1] and best_mask.size() == 0):
-                    best_mask = mask
-                    best_r = rank
+                # if ( i==a[0] and j == a[1] and best_mask.size() == 0):
+                #     best_mask = mask
+                #     best_r = rank
                     
                 mask[i][j] = -1 * mask[i][j]
     
     
         return matrices, best_mask, best_r
-
-def hash_matrix(matrix):
-    # Convertir la matrice en une chaîne et calculer un hash
-    matrix_str = str(matrix)
-    return hashlib.md5(matrix_str.encode()).hexdigest()
-
-#%% Recherche Tabou
-
-
+    
+    
 def recherche_tabou(sqrt_matrix, r):
     a = sqrt_matrix.shape
     matrices = {}
@@ -90,14 +83,16 @@ def recherche_tabou(sqrt_matrix, r):
         print(i)
         matrices, best_mask, best_r = voisinage(matrices, sqrt_matrix, best_mask, best_r, a)
         i+=1
-
-                
-            
-            
-            
+     
     return best_mask, best_r
-            
-            
+
+
+def hash_matrix(matrix):
+    # Convertir la matrice en une chaîne et calculer un hash
+    matrix_str = str(matrix)
+    return hashlib.md5(matrix_str.encode()).hexdigest()
+
+     
 #%%
 
 matrix = np.array([[9, 4],[16,9]])
