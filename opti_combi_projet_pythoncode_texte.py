@@ -48,12 +48,12 @@ def metaheuristic(M):
 
   return bestPattern
 
-M = np.array([[4,0,1],[1,1,1],[1,1,0]])
-P1 = np.array([[1,1,-1],[-1,1,1],[1,-1,-1]])
-P2 = np.array([[-1,1,-1],[-1,-1,1],[1,1,-1]])
-print(compareP1betterthanP2(M,P1,P2))
-print(np.linalg.svd(P1*np.sqrt(M), compute_uv=False))
+# M = np.array([[4,0,1],[1,1,1],[1,1,0]])
+# P1 = np.array([[1,1,-1],[-1,1,1],[1,-1,-1]])
+# P2 = np.array([[-1,1,-1],[-1,-1,1],[1,1,-1]])
+# print(compareP1betterthanP2(M,P1,P2))
+# print(np.linalg.svd(P1*np.sqrt(M), compute_uv=False))
 
-M = matrices2_slackngon(7)
-P = np.array([[1,1,1,1,1,-1,1],[1,1,1,-1,1,-1,1],[1,1,1,1,1,1,-1],[1,-1,1,1,1,-1,-1],[1,1,-1,1,1,1,1],[1,-1,1,-1,-1,1,1],[1,1,1,1,1,1,1]])
-print(fobj(M,P))
+# M = matrices2_slackngon(7)
+# P = np.array([[1,1,1,1,1,-1,1],[1,1,1,-1,1,-1,1],[1,1,1,1,1,1,-1],[1,-1,1,1,1,-1,-1],[1,1,-1,1,1,1,1],[1,-1,1,-1,-1,1,1],[1,1,1,1,1,1,1]])
+# print(fobj(M,P))
