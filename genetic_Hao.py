@@ -167,7 +167,6 @@ def metaheuristic(M,
 
     # Initialisation
     population = (sorted(generate_population(pop_size, sa_solutions), key=lambda ind: fitness(ind)))
-    print(f"Population initiale triée : {population}")
     bestPattern = population[0]
     best_fitness = fitness(bestPattern)
 
