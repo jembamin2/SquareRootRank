@@ -222,21 +222,21 @@ def metaheuristic(M,
 
 # M = read_matrix("test(pas unitaire)/correl5_matrice.txt")
 # M = read_matrix("test(pas unitaire)/slack7gon_matrice.txt")
-M = read_matrix("test(pas unitaire)/synthetic_matrice.txt")
+# M = read_matrix("test(pas unitaire)/synthetic_matrice.txt")
 
 #m, n = 6, 4
 #M = np.random.rand(m, n)
-# M = opti.matrices1_ledm(10)
+M = opti.matrices1_ledm(10)
 
 sa_solutions=[]
 best_pattern = metaheuristic(
     M, 
     sa_solutions,
-    pop_size=100,               # Population size (includes SA solutions)
+    pop_size=200,               # Population size (includes SA solutions)
     generations=1000, 
-    mutation_rate=0.35, 
-    num_parents=30, 
-    num_children=100
+    mutation_rate=0.30, 
+    num_parents=60, 
+    num_children=400
 )
 
 

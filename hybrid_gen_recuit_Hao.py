@@ -167,13 +167,13 @@ def metaheuristic(M,
 
     # Initialisation
     population = (sorted(generate_population(pop_size, sa_solutions), key=lambda ind: fitness(ind)))
-    print(f"Population initiale triée : {population}")
+    # print(f"Population initiale triée : {population}")
     bestPattern = population[0]
     best_fitness = fitness(bestPattern)
     
 
     # Algorithme génétique
-    for gen in (range(generations)):
+    for gen in tqdm(range(generations)):
         # Choisir aléatoirement une méthode de sélection des parents
         parent_selection_method = random.choice(parent_selection_methods)
         parents = parent_selection_method(population, num_parents)
@@ -208,7 +208,7 @@ def metaheuristic(M,
             best_fitness = fitness(bestPattern)
             # print(best_fitness)
 
-        print(f"Génération {gen+1} - Rang : {best_fitness[0]}, Petite valeur singulière : {best_fitness[1]}")
+        # print(f"Génération {gen+1} - Rang : {best_fitness[0]}, Petite valeur singulière : {best_fitness[1]}")
         # if best_fitness[0] == 2:
         #     break
 
@@ -299,23 +299,23 @@ def simulated_annealing(M,
 
 # M = read_matrix("test(pas unitaire)/correl5_matrice.txt")
 # M = read_matrix("test(pas unitaire)/slack7gon_matrice.txt")
-M = read_matrix("test(pas unitaire)/synthetic_matrice.txt")
+# M = read_matrix("test(pas unitaire)/synthetic_matrice.txt")
 
 #m, n = 6, 4
 #M = np.random.rand(m, n)
-# M = opti.matrices1_ledm(10)
+M = opti.matrices1_ledm(10)
 
 # Run Simulated Annealing 10 times and collect solutions
 sa_solutions = []
-for i in range(2):
+for i in range(10):
     print(f"Simulated Annealing Run {i+1}/10")
     sa_solution, sa_fitness = simulated_annealing(
         M, 
-        initial_temp=500,
+        initial_temp=100,
         final_temp=5e-4,
         alpha=0.95,
         max_iter_per_temp=1000,
-        mutation_rate=0.1
+        mutation_rate=0.2
     )
     sa_solutions.append(sa_solution)
 
