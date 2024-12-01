@@ -13,6 +13,14 @@ from tqdm import tqdm
 
 from numpy.linalg import svd
 
+def LEDM (n,m):
+    M=np.zeros((n,m))
+    
+    for i in range(n):
+        for j in range(m):
+            M[i,j]=(i-j)**2
+    return M
+
 
 def read_matrix(input_file):
     with open(input_file, 'r') as fin:
@@ -113,6 +121,7 @@ def validate_solution(original_matrix, reformed_matrix):
 start = time.time()
 
 matrix = read_matrix("correl5_matrice.txt")
+#matrix= LEDM(120,120)
 shape = matrix.shape
 
 mask = setup_mask(shape)
@@ -121,7 +130,7 @@ sqrt_matrix = setup_sqrt_matrix(matrix)
 #Définit le nombre de valeurs à changer par itérations
 num_swap=2
 
-num_iterations = 1000000
+num_iterations = 100000
 best_mask, best_rank, best_singular, best_significant_singular_values, best_U, best_V,btest = optimize_matrix(sqrt_matrix, mask, num_iterations,num_swap)
 
 print("Best rank:", best_rank)
