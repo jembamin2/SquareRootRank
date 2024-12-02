@@ -3,21 +3,35 @@ import opti_combi_projet_pythoncode_texte as opti
 import random
 import time
 
-def local_search_sequential(M, max_iterations=10000000):
+
+def read_matrix(input_file):
+    with open(input_file, 'r') as fin:
+        matrix = []
+        r,c=map(int,fin.readline().split())
+        for i in range (r):
+            tmp = fin.readline().split()
+            matrix.append(list(map(float, tmp)))
+    return np.array(matrix)
+
+
+def local_search_sequential(M, max_iterations):
     import time
     import numpy as np
+    import random
 
     start = time.time()
     m, n = M.shape  # Dimensions of the matrix
     best_solution = []
 
     # Start with an initial pattern
-    patterns = [np.ones((m, n)) * -1]
+    patterns = [np.ones((m, n))*-1]
 
     for pattern in patterns:
         current_pattern = pattern.copy()
         best_pattern = current_pattern.copy()
         best_fitness = opti.fobj(M, best_pattern)
+        stagnation_counter = 0  # Counter for consecutive stagnation iterations
+
         print(f"Starting search. Initial rank: {best_fitness[0]}, Initial smallest singular value: {best_fitness[1]}")
 
         for iteration in range(max_iterations):
@@ -33,6 +47,7 @@ def local_search_sequential(M, max_iterations=10000000):
                         best_pattern = current_pattern.copy()
                         best_fitness = new_fitness
                         improved = True
+                        stagnation_counter = 0  # Reset stagnation counter
                         print(f"Iteration {iteration + 1}, Improved at ({i}, {j}): Rank {best_fitness[0]}, Smallest Singular Value {best_fitness[1]}")
                         break  # Restart single-swap
                     else:
@@ -40,6 +55,22 @@ def local_search_sequential(M, max_iterations=10000000):
 
                 if improved:
                     break  # Restart single-swap
+
+            if improved:
+                continue  # Restart single-element flipping
+
+            # Diagonal flipping
+            np.fill_diagonal(current_pattern, current_pattern.diagonal() * -1)
+            new_fitness = opti.fobj(M, current_pattern)
+
+            if opti.compareP1betterthanP2(M, current_pattern, best_pattern):
+                best_pattern = current_pattern.copy()
+                best_fitness = new_fitness
+                improved = True
+                stagnation_counter = 0  # Reset stagnation counter
+                print(f"Iteration {iteration + 1}, Improved with Diagonal flipping: Rank {best_fitness[0]}, Smallest Singular Value {best_fitness[1]}")
+            else:
+                np.fill_diagonal(current_pattern, current_pattern.diagonal() * -1)  # Revert
 
             if improved:
                 continue  # Restart single-element flipping
@@ -78,10 +109,37 @@ def local_search_sequential(M, max_iterations=10000000):
             if improved:
                 continue  # Restart single-element flipping
 
-            # Terminate if no improvement in this iteration
+            # Block flipping
+            block_size = random.randint(1, min(m, n) // 2)  # Random block size
+            x_start = random.randint(0, m - block_size)
+            y_start = random.randint(0, n - block_size)
+            current_pattern[x_start:x_start + block_size, y_start:y_start + block_size] *= -1
+            new_fitness = opti.fobj(M, current_pattern)
+
+            if opti.compareP1betterthanP2(M, current_pattern, best_pattern):
+                best_pattern = current_pattern.copy()
+                best_fitness = new_fitness
+                improved = True
+                print(f"Iteration {iteration + 1}, Improved with Block flipping: Rank {best_fitness[0]}, Smallest Singular Value {best_fitness[1]}")
+            else:
+                current_pattern[x_start:x_start + block_size, y_start:y_start + block_size] *= -1  # Revert
+
+            if improved:
+                continue  # Restart single-element flipping
+
             if not improved:
-                print(f"No improvement found in iteration {iteration + 1}. Stopping search.")
-                break
+                
+                # Store the best solution found so far
+                best_solution.append((best_pattern.copy(), best_fitness))
+                print(f"Local minimum detected at iteration {iteration + 1}. Best solution stored. Rank: {best_fitness[0]}, Smallest Singular Value: {best_fitness[1]}")
+
+                # Generate a new starting point (perturbed version of current pattern)
+                new_pattern = np.random.choice([1, -1], size=(m, n))
+                current_pattern = new_pattern.copy()
+                best_pattern = current_pattern.copy()
+                best_fitness = opti.fobj(M, best_pattern)
+
+                print(f"Search reinitialized with new pattern.")
 
         # Store the best solution found
         best_solution.append((best_pattern, best_fitness))
@@ -89,11 +147,14 @@ def local_search_sequential(M, max_iterations=10000000):
 
     return best_solution
 
-# Example Usage
-M = opti.matrices1_ledm(120)  # Example matrix
+
+# M = read_matrix("test(pas unitaire)/correl5_matrice.txt")
+# M = read_matrix("test(pas unitaire)/slack7gon_matrice.txt")
+# M = read_matrix("test(pas unitaire)/synthetic_matrice.txt")
+M = opti.matrices1_ledm(30)  # Example matrix
 
 
-solutions = local_search_sequential(M ,max_iterations=1000000)
+solutions = local_search_sequential(M ,max_iterations=100)
 
 print("Best Solutions Found:")
 for solution in solutions:

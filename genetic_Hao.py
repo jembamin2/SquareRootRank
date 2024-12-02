@@ -241,19 +241,19 @@ def metaheuristic(M,
 
 # m, n = 10, 10
 # M = np.random.rand(m, n)
-M = opti.matrices1_ledm(15)
+M = opti.matrices1_ledm(14)
 
 sol = []
 sa_solutions=[]
 
-for i in range(10):
+for i in range(2):
     best_pattern = metaheuristic(
         M, 
         sa_solutions,
-        pop_size=300,               # Population size (includes SA solutions)
-        generations=1000, 
+        pop_size=250,               # Population size (includes SA solutions)
+        generations=500, 
         mutation_rate=0.35, 
-        num_parents=100, 
+        num_parents=80, 
         num_children=200
     )
     sol.append(opti.fobj(M, best_pattern))
