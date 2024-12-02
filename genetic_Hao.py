@@ -67,14 +67,29 @@ def metaheuristic(M,
         return r, s
 
     # Méthodes de sélection des parents
+    import random
+
     def select_parents_tournament(population, num_parents):
-        """Sélection par tournoi."""
+        """Sélection par tournoi avec retrait des compétiteurs choisis."""
         selected_parents = []
         for _ in range(num_parents):
+            if len(population) < 2:  # S'assurer qu'il reste au moins 2 individus pour le tournoi
+                raise ValueError("La population est insuffisante pour un tournoi.")
+            
             competitors = random.sample(population, 2)
             competitors = sorted(competitors, key=lambda ind: fitness(ind))
+            # print(f"Fitness: {fitness(competitors[0])} vs {fitness(competitors[1])}")
+            
             selected_parents.append(competitors[0])  # Le meilleur gagne
+
+            # Rechercher et retirer l'individu correspondant
+            for i, individual in enumerate(population):
+                if (individual == competitors[0]).all():  # Comparaison spécifique aux tableaux
+                    del population[i]
+                    break
         return selected_parents
+
+
     
     def select_parents_roulette(population, num_parents):
         """Sélection par roulette.""" #A MODIFIER POUR PROBA
@@ -85,8 +100,8 @@ def metaheuristic(M,
 
     # Liste des méthodes de sélection des parents
     parent_selection_methods = [
-        select_parents_tournament,
-        select_parents_roulette
+        select_parents_tournament
+        # ,select_parents_roulette
     ]
 
     # Opérateurs de croisement
@@ -189,7 +204,7 @@ def metaheuristic(M,
                 # Mutation
                 mutate_method = random.choices(
                     mutate_methods, 
-                    weights=[0.2, 0.4, 0.4, 0.2], 
+                    weights=[0.25, 0.4, 0.4, 0.25], 
                     k=1
                 )[0]
                 child = mutate_method(child)
@@ -224,24 +239,29 @@ def metaheuristic(M,
 # M = read_matrix("test(pas unitaire)/slack7gon_matrice.txt")
 # M = read_matrix("test(pas unitaire)/synthetic_matrice.txt")
 
-#m, n = 6, 4
-#M = np.random.rand(m, n)
-M = opti.matrices1_ledm(10)
+# m, n = 10, 10
+# M = np.random.rand(m, n)
+M = opti.matrices1_ledm(15)
 
+sol = []
 sa_solutions=[]
-best_pattern = metaheuristic(
-    M, 
-    sa_solutions,
-    pop_size=200,               # Population size (includes SA solutions)
-    generations=1000, 
-    mutation_rate=0.30, 
-    num_parents=60, 
-    num_children=400
-)
 
+for i in range(10):
+    best_pattern = metaheuristic(
+        M, 
+        sa_solutions,
+        pop_size=300,               # Population size (includes SA solutions)
+        generations=1000, 
+        mutation_rate=0.35, 
+        num_parents=100, 
+        num_children=200
+    )
+    sol.append(opti.fobj(M, best_pattern))
 
+for i in sol:
+    print(i)
 
-print("Meilleur pattern trouvé :")
-# print(best_pattern)
-rank, smallest_singular = opti.fobj(M, best_pattern)
-print(f"Rang : {rank}, Plus petite valeur singulière non nulle : {smallest_singular}")
+# print("Meilleur pattern trouvé :")
+# # print(best_pattern)
+# rank, smallest_singular = opti.fobj(M, best_pattern)
+# print(f"Rang : {rank}, Plus petite valeur singulière non nulle : {smallest_singular}")
