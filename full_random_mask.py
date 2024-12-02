@@ -13,6 +13,14 @@ from tqdm import tqdm
 
 from numpy.linalg import svd
 
+def LEDM (n,m):
+    M=np.zeros((n,m))
+    
+    for i in range(n):
+        for j in range(m):
+            M[i,j]=(i-j)**2
+    return M
+
 
 def LEDM (n,m):
     M=np.zeros((n,m))
@@ -121,14 +129,8 @@ def validate_solution(original_matrix, reformed_matrix):
 #%% 
 start = time.time()
 
-matrix = LEDM(120, 120)
-# matrix = (np.random.rand(7,3)*10)@(np.random.rand(3,7)*10)
-# matrix = matrix**2
-
-# matrix = read_matrix("ledm6_matrice.txt")
-#matrix = read_matrix("correl5_matrice.txt")
-
-
+matrix = read_matrix("correl5_matrice.txt")
+#matrix= LEDM(120,120)
 shape = matrix.shape
 
 
