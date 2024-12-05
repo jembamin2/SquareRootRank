@@ -1,4 +1,4 @@
-import opti_combi_projet_pythoncode_texte as opti
+import opti_combi_projet_pythoncode_texte_v2 as opti
 import numpy as np
 import random
 from tqdm import tqdm
@@ -228,7 +228,7 @@ def metaheuristic(M,
         if time.time()-start>300:
             break
 
-    
+    print(time.time()-start)
     return bestPattern
 
 
@@ -239,24 +239,28 @@ def metaheuristic(M,
 # M = read_matrix("test(pas unitaire)/slack7gon_matrice.txt")
 # M = read_matrix("test(pas unitaire)/synthetic_matrice.txt")
 
+
 # m, n = 10, 10
 # M = np.random.rand(m, n)
-M = opti.matrices1_ledm(14)
+sols = [opti.matrices1_ledm(50)]
+# M = opti.matrices1_ledm(14)
 
 sol = []
 sa_solutions=[]
 
-for i in range(2):
+for M in (sols):
+    start=time.time()
     best_pattern = metaheuristic(
         M, 
         sa_solutions,
-        pop_size=250,               # Population size (includes SA solutions)
-        generations=500, 
-        mutation_rate=0.35, 
-        num_parents=80, 
-        num_children=200
+        pop_size=60,
+        generations=4500, 
+        mutation_rate=0.5, 
+        num_parents=30, 
+        num_children=80
     )
-    sol.append(opti.fobj(M, best_pattern))
+
+    sol.append((M.shape[0],opti.fobj(M, best_pattern),time.time()-start))
 
 for i in sol:
     print(i)

@@ -1,4 +1,4 @@
-import opti_combi_projet_pythoncode_texte as opti
+import opti_combi_projet_pythoncode_texte_v2 as opti
 import numpy as np
 import random
 from tqdm import tqdm

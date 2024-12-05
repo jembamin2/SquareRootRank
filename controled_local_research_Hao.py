@@ -1,5 +1,5 @@
 import numpy as np
-import opti_combi_projet_pythoncode_texte as opti
+import opti_combi_projet_pythoncode_texte_v2 as opti
 import random
 import time
 
