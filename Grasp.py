@@ -8,6 +8,7 @@ Created on Fri Nov 29 16:02:38 2024
 import numpy as np
 import random
 from tqdm import tqdm 
+
 #%%
 def matrices1_ledm(n):
   M  = np.zeros((n,n))
@@ -75,7 +76,63 @@ def greedy_randomized_construction(sqrt_matrix, alpha):
             mask[i, j] = chosen_sign
     
     return mask
-
+'''
+def greedy_randomized_construction(sqrt_matrix, alpha):
+    """
+    Construction gloutonne randomisée pour générer un masque initial,
+    prenant en compte le rang et la plus petite valeur singulière.
+    
+    Args:
+        sqrt_matrix (numpy.ndarray): Matrice après racine carrée élémentaire.
+        alpha (float): Paramètre pour contrôler le degré de randomisation.
+        
+    Returns:
+        numpy.ndarray: Masque généré.
+    """
+    n, m = sqrt_matrix.shape
+    mask = np.ones((n, m))  # Initialisation du masque à 1 partout
+    
+    for i in range(n):
+        for j in range(m):
+            # Tester les deux options possibles (+1 ou -1)
+            ranks = []
+            singulars = []
+            
+            for sign in [1, -1]:
+                temp_mask = mask.copy()
+                temp_mask[i, j] = sign
+                transformed_matrix = apply_mask(sqrt_matrix, temp_mask)
+                
+                # Calculer le rang et la plus petite valeur singulière
+                rank = calculate_rank(transformed_matrix)
+                singular = calculate_singular(transformed_matrix)
+                
+                ranks.append(rank)
+                singulars.append(singular)
+            
+            # Liste restreinte de candidats (RCL)
+            min_rank = min(ranks)
+            max_rank = max(ranks)
+            min_singular = min(singulars)
+            max_singular = max(singulars)
+            
+            # Calcul des seuils pour les deux critères
+            rank_threshold = min_rank + alpha * (max_rank - min_rank)
+            singular_threshold = min_singular + alpha * (max_singular - min_singular)
+            
+            # RCL : options satisfaisant les deux critères
+            rcl = [
+                sign
+                for sign, rank, singular in zip([1, -1], ranks, singulars)
+                if rank <= rank_threshold and singular >= singular_threshold
+            ]
+            
+            # Choisir un signe aléatoire parmi les options de la RCL
+            chosen_sign = random.choice(rcl)
+            mask[i, j] = chosen_sign  # Appliquer le signe choisi
+    
+    return mask
+'''
 def local_search(mask, sqrt_matrix):
     
     n, m = mask.shape
@@ -104,6 +161,7 @@ def local_search(mask, sqrt_matrix):
             smallest_singular = singular
     
     return best_mask
+
 
 def grasp_minimize_sqrt_rank(A, max_iterations=50, alpha=0.3, tol=1e-14):
     """
@@ -148,11 +206,11 @@ def grasp_minimize_sqrt_rank(A, max_iterations=50, alpha=0.3, tol=1e-14):
 
 #%%
 matrix=read_matrix("synthetic_matrice.txt")
-#matrix=matrices1_ledm(30)
+matrix=matrices1_ledm(10)
 
-max_iterations = 100
-alpha = 0.2
-tol = 1e-14
+max_iterations = 5000
+alpha = 0.1
+tol = 1e-10
 
 best_mask, best_rank, smallest_singular = grasp_minimize_sqrt_rank(matrix, max_iterations, alpha, tol)
 
