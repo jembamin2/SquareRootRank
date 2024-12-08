@@ -21,18 +21,14 @@ def metaheuristic(M,
                   generations, 
                   mutation_rate, 
                   num_parents, 
-                  num_children):
+                  num_children,
+                  max_stagnation):
+    stagnation = 0
     start=time.time()
     
     m, n = M.shape  # Dimensions de la matrice cible
     indices = [(i, j) for i in range(m) for j in range(n)]
-    
-    # Génération initiale : population aléatoire avec valeurs {-1, 1}
-    # def generate_individual():
-    #     return np.random.choice([-1, 1], size=(m, n))
-    
-    # def generate_population(size):
-    #     return [generate_individual() for _ in range(size)]
+
     
     def generate_clever_individual():
         individual = np.ones((m, n))
@@ -45,21 +41,6 @@ def metaheuristic(M,
     def generate_population(size, sa_solutions):
         population = [generate_clever_individual() for _ in range(size-len(sa_solutions))]
         return sa_solutions + population
-    
-    # def average_singular_value(population):
-    #     singular_values = [opti.fobj(M, ind)[1] for ind in population]
-    #     return np.mean(singular_values)
-    
-    # # Print average singular value for clever individuals
-    # clever_population = [generate_clever_individual() for _ in range(pop_size)]
-    # avg_singular_value_clever = average_singular_value(clever_population)
-    # print(f"Average singular value (clever individuals): {avg_singular_value_clever}")
-
-    # # Print average singular value for random individuals
-    # random_population = [generate_individual() for _ in range(pop_size)]
-    # avg_singular_value_random = average_singular_value(random_population)
-    # print(f"Average singular value (random individuals): {avg_singular_value_random}")
-    
 
     # Fitness : Évaluation du pattern
     def fitness(individual):
@@ -67,7 +48,6 @@ def metaheuristic(M,
         return r, s
 
     # Méthodes de sélection des parents
-    import random
 
     def select_parents_tournament(population, num_parents):
         """Sélection par tournoi avec retrait des compétiteurs choisis."""
@@ -181,9 +161,11 @@ def metaheuristic(M,
     ]
 
     # Initialisation
-    population = (sorted(generate_population(pop_size, sa_solutions), key=lambda ind: fitness(ind)))
+    population = sorted(generate_population(pop_size, sa_solutions), key=lambda ind: fitness(ind))
     bestPattern = population[0]
     best_fitness = fitness(bestPattern)
+    bestPatternB = population[0]
+    best_fitnessB = fitness(bestPatternB)
 
     # Algorithme génétique
     for gen in (range(generations)):
@@ -204,7 +186,7 @@ def metaheuristic(M,
                 # Mutation
                 mutate_method = random.choices(
                     mutate_methods, 
-                    weights=[0.25, 0.4, 0.4, 0.25], 
+                    weights=[0.3, 0.4, 0.4, 0.25], 
                     k=1
                 )[0]
                 child = mutate_method(child)
@@ -214,22 +196,35 @@ def metaheuristic(M,
         new_generation_method = random.choice(new_generation_methods)
         population = new_generation_method(parents, children, population)
 
+        stagnation += 1
+
         # Mettre à jour le meilleur pattern
         best_in_pop = sorted(population, key=lambda ind: fitness(ind))[0]
         if opti.compareP1betterthanP2(M, best_in_pop, bestPattern):
             bestPattern = best_in_pop
             best_fitness = fitness(bestPattern)
+            stagnation = 0
+            if opti.compareP1betterthanP2(M, bestPattern, bestPatternB):
+                bestPatternB = bestPattern
+                best_fitnessB = fitness(bestPatternB)
             # print(best_fitness)
 
+        if stagnation > max_stagnation:
+            print("Stagnation")
+            population = (sorted(generate_population(pop_size, sa_solutions), key=lambda ind: fitness(ind)))
+            bestPattern = population[0]
+            best_fitness = fitness(bestPattern)
+            stagnation = 0
+
         print(f"Génération {gen+1} - Rang : {best_fitness[0]}, Petite valeur singulière : {best_fitness[1]}")
-        # if best_fitness[0] == 2:
-        #     break
+        if best_fitness[0] == 2:
+            break
 
         if time.time()-start>300:
             break
 
     print(time.time()-start)
-    return bestPattern
+    return bestPatternB
 
 
 
@@ -242,7 +237,7 @@ def metaheuristic(M,
 
 # m, n = 10, 10
 # M = np.random.rand(m, n)
-sols = [opti.matrices1_ledm(50)]
+sols = [opti.matrices2_slackngon(18)]
 # M = opti.matrices1_ledm(14)
 
 sol = []
@@ -253,11 +248,12 @@ for M in (sols):
     best_pattern = metaheuristic(
         M, 
         sa_solutions,
-        pop_size=60,
-        generations=4500, 
-        mutation_rate=0.5, 
-        num_parents=30, 
-        num_children=80
+        pop_size=150,
+        generations=2500, 
+        mutation_rate=0.7, 
+        num_parents=80, 
+        num_children=150,
+        max_stagnation=250
     )
 
     sol.append((M.shape[0],opti.fobj(M, best_pattern),time.time()-start))

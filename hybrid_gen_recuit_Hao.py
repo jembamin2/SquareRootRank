@@ -303,7 +303,7 @@ def simulated_annealing(M,
 
 #m, n = 6, 4
 #M = np.random.rand(m, n)
-M = opti.matrices1_ledm(10)
+M = opti.matrices1_ledm(20)
 
 # Run Simulated Annealing 10 times and collect solutions
 sa_solutions = []

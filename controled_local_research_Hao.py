@@ -30,7 +30,7 @@ def local_search_sequential(M, max_iterations):
         current_pattern = pattern.copy()
         best_pattern = current_pattern.copy()
         best_fitness = opti.fobj(M, best_pattern)
-        stagnation_counter = 0  # Counter for consecutive stagnation iterations
+        stagnation_counter = 100  # Counter for consecutive stagnation iterations
 
         print(f"Starting search. Initial rank: {best_fitness[0]}, Initial smallest singular value: {best_fitness[1]}")
 
@@ -129,6 +129,7 @@ def local_search_sequential(M, max_iterations):
 
             if not improved:
                 
+                break
                 # Store the best solution found so far
                 best_solution.append((best_pattern.copy(), best_fitness))
                 print(f"Local minimum detected at iteration {iteration + 1}. Best solution stored. Rank: {best_fitness[0]}, Smallest Singular Value: {best_fitness[1]}")
@@ -140,7 +141,6 @@ def local_search_sequential(M, max_iterations):
                 best_fitness = opti.fobj(M, best_pattern)
 
                 print(f"Search reinitialized with new pattern.")
-
         # Store the best solution found
         best_solution.append((best_pattern, best_fitness))
         print(f"Time taken: {time.time() - start} seconds")
@@ -151,14 +151,14 @@ def local_search_sequential(M, max_iterations):
 # M = read_matrix("test(pas unitaire)/correl5_matrice.txt")
 # M = read_matrix("test(pas unitaire)/slack7gon_matrice.txt")
 # M = read_matrix("test(pas unitaire)/synthetic_matrice.txt")
-M = opti.matrices1_ledm(30)  # Example matrix
+M = opti.matrices2_slackngon(16)  # Example matrix
 
 
-solutions = local_search_sequential(M ,max_iterations=100)
+solutions = local_search_sequential(M ,max_iterations=1000000)
 
 print("Best Solutions Found:")
 for solution in solutions:
-    print(solution[1])
+    print(M.shape[0],solution[1])
 
 
 # print("Best Pattern Found:")
