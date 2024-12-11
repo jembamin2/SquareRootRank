@@ -31,6 +31,8 @@ def metaheuristic(M,
 
     
     def generate_clever_individual():
+        
+        individual = np.random.choice([-1, 1], size=(m, n), p=[0.85,0.15])
         individual = np.ones((m, n))
         for i in range(m):
             for j in range(n):
@@ -237,8 +239,8 @@ def metaheuristic(M,
 
 # m, n = 10, 10
 # M = np.random.rand(m, n)
-sols = [opti.matrices2_slackngon(18)]
-# M = opti.matrices1_ledm(14)
+# sols = [opti.matrices2_slackngon(18)]
+sols = [opti.matrices1_ledm(110)]
 
 sol = []
 sa_solutions=[]
@@ -253,7 +255,7 @@ for M in (sols):
         mutation_rate=0.7, 
         num_parents=80, 
         num_children=150,
-        max_stagnation=250
+        max_stagnation=200
     )
 
     sol.append((M.shape[0],opti.fobj(M, best_pattern),time.time()-start))
