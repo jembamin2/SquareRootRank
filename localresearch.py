@@ -46,16 +46,21 @@ def fobj(M,P):
   return len(ind_nonzero), sing_values[ind_nonzero[-1]]          
 
 
-def local_search(matrix,T):
+def local_search(matrix,T,nbr_swap):
     
     n, m = matrix.shape
     best_mask = np.ones(matrix.shape)
     best_rank,smallest_singular = fobj(matrix,best_mask)
     
+    counter=0
     for _ in tqdm(range(T)):  # Nombre d'itérations limité pour la recherche locale
-        i, j = random.randint(0, n - 1), random.randint(0, m - 1)
-        new_mask = best_mask.copy()
-        new_mask[i, j] *= -1  # Swap
+    
+    
+        for k in range(nbr_swap):
+            
+            i, j = random.randint(0, n - 1), random.randint(0, m - 1)
+            new_mask = best_mask.copy()
+            new_mask[i, j] *= -1  # Swap
         
             
         new_rank,singular=fobj(matrix,new_mask)
@@ -65,22 +70,30 @@ def local_search(matrix,T):
             best_mask = new_mask
             best_rank = new_rank
             smallest_singular = singular
+            nbr_swap=1
             
             
         elif new_rank == best_rank and singular<smallest_singular:
             best_mask = new_mask
             smallest_singular = singular
-    
+            nbr_swap=1
+        
+        else : 
+            nbr_swap+=1
+        
+        if nbr_swap>1000:
+            break
+        
     return best_mask,best_rank,smallest_singular
 
 
 #%%
 
 matrix=read_matrix("correl5_matrice.txt")
-matrix=matrices1_ledm(30)
+matrix=matrices1_ledm(120)
 #matrix=matrices2_slackngon(50)
 
-a,b,c=local_search(matrix, 100000)
+a,b,c=local_search(matrix, 100000,1)
 
 print(f"best rank = {b}")
 print(f"smallest singular = {c}")
