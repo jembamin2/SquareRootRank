@@ -48,8 +48,8 @@ def compute_rank(matrix):
     rank = np.sum(S > 1e-10)
     return rank
 
-def fobj(M):
-    sing_values = np.linalg.svd(M, compute_uv=False)
+def fobj(M,P=1):
+    sing_values = np.linalg.svd(M*P, compute_uv=False)
     tol = max(M.shape) * sing_values[0] * np.finfo(float).eps
     ind_nonzero = np.where(sing_values > tol)[0]
     return len(ind_nonzero), sing_values[ind_nonzero[-1]]
@@ -66,7 +66,7 @@ def initialize_mask_from_low_rank_blocks(matrix, block_size=10):
     mask = np.ones(matrix.shape)
 
     for block, i, j in blocks:
-        if np.linalg.matrix_rank(block) <= 2:  # Seuil pour les blocs à faible rang
+        if np.linalg.matrix_rank(block) <= 2:  # Seuil pour les blocs à faible rang  Il faudrait print pour savoir ce que ca retourne car definition dit tol=None
             mask[i:i+block_size, j:j+block_size] = -1
 
     return mask
@@ -83,7 +83,7 @@ def split_into_blocks(matrix, block_size):
             blocks.append((block, i, j))  # Garder les indices de début
     return blocks
 
-def optimize_block_mask(block, threshold=1e-2):
+def optimize_block_mask(block, threshold=1e-12):
     """
     Optimise le masque pour une sous-matrice donnée.
     """
@@ -104,9 +104,10 @@ def reconstruct_global_mask(blocks, masks, matrix_shape):
         global_mask[i:i+n, j:j+m] = mask
     return global_mask
 
-def initialize_mask_from_blocks(matrix, block_size, threshold=1e-2):
+def initialize_mask_from_blocks(matrix, block_size, threshold=1e-12):
     # Diviser la matrice en blocs
     blocks = split_into_blocks(matrix, block_size)
+    # print(blocks)
     
     # Optimiser le masque pour chaque bloc
     masks = [optimize_block_mask(block, threshold) for block, _, _ in blocks]
@@ -144,7 +145,7 @@ def generate_neighbors(current_mask, num_neighbors, num_modifications):
 
 
 
-def tabu_search_with_plot(matrix, initial_mask, tot_resets, num_n, num_m, tabu_size=10, max_no_improve=10, max_iterations=100):
+def tabu_search_with_plot(matrix, initial_mask, tot_resets, num_n, num_m, tabu_size, max_no_improve, max_iterations):
     """
     Recherche tabou pour minimiser le rang avec graphiques.
     """
@@ -153,7 +154,7 @@ def tabu_search_with_plot(matrix, initial_mask, tot_resets, num_n, num_m, tabu_s
     rank_history = []
     best_overall_rank = float('inf')
     best_overall_singular_value = float('inf')
-    best_overall_mask = None
+    best_overall_mask = initial_mask.copy()
     total_resets = 0
 
     best_rank = best_overall_rank;
@@ -165,7 +166,7 @@ def tabu_search_with_plot(matrix, initial_mask, tot_resets, num_n, num_m, tabu_s
         # Initialisation pour un nouveau voisinage
         current_mask = initial_mask.copy()
         best_mask = current_mask.copy()
-        current_rank, current_singular_value = fobj(apply_mask(matrix, current_mask))
+        current_rank, current_singular_value = fobj(matrix)
         best_rank = current_rank
         best_singular_value = current_singular_value
         no_improve = 0
@@ -202,13 +203,13 @@ def tabu_search_with_plot(matrix, initial_mask, tot_resets, num_n, num_m, tabu_s
             # Prendre le meilleur voisin (ou plusieurs)
             if evaluated_neighbors:
                 best_neighbor_rank, best_neighbor_singular_value, best_neighbor_bytes = evaluated_neighbors[0]
-                current_mask = np.frombuffer(best_neighbor_bytes, dtype=current_mask.dtype).reshape(current_mask.shape)
+                current_mask = np.frombuffer(best_neighbor_bytes, dtype=current_mask.dtype).reshape(current_mask.shape) #je comrpends pas TODO
                 current_rank = best_neighbor_rank
                 current_singular_value = best_neighbor_singular_value
         
                 rank_history.append((best_rank, current_singular_value))
 
-                if current_rank < best_rank:
+                if compareP1betterthanP2(matrix,current_mask,best_mask):
                     best_mask = current_mask.copy()
                     best_rank = current_rank
                     best_singular_value = current_singular_value
@@ -234,7 +235,7 @@ def tabu_search_with_plot(matrix, initial_mask, tot_resets, num_n, num_m, tabu_s
             #print(f"Iteration {iteration + 1}: Current Rank = {current_rank}, Best Rank = {best_rank}")
 
         # Mettre à jour le meilleur résultat global
-        if best_rank < best_overall_rank or (best_rank == best_overall_rank and best_singular_value < best_overall_singular_value):
+        if compareP1betterthanP2(matrix,best_mask,best_overall_mask):
             best_overall_rank = best_rank
             best_overall_singular_value = best_singular_value
             best_overall_mask = best_mask
@@ -315,7 +316,7 @@ def initialize_mask_from_blocks_fast(matrix, block_size, mask_method, **kwargs):
     
     return mask
 
-def simple_block_mask(block, threshold=1e-2):
+def simple_block_mask(block, threshold=1e-12):
     """
     Crée un masque pour un bloc en marquant les valeurs proches de zéro.
     
@@ -347,6 +348,7 @@ if __name__ == "__main__":
     # original_matrix = read_matrix("correl5_matrice.txt")
     original_matrix = matrices1_ledm(120)
     sqrt_matrix = np.sqrt(original_matrix)
+    initial_mask = np.ones_like(sqrt_matrix)
     in_rank, s = fobj(sqrt_matrix)
     print("Matrice originale :\n", original_matrix)
     print("Initial Rank :\n", in_rank)
@@ -355,7 +357,7 @@ if __name__ == "__main__":
 
     # Exemple d'application
     block_size = 6  # Taille des sous-matrices
-    threshold = 1e-3  # Seuil pour détecter les contributions faibles
+    threshold = 1e-12  # Seuil pour détecter les contributions faibles
 
     #block_mask = initialize_mask_from_low_rank_blocks(sqrt_matrix, block_size=5)
     block_mask = initialize_mask_from_blocks(original_matrix, block_size)
