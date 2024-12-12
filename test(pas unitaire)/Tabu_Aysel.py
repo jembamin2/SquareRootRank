@@ -83,7 +83,7 @@ def split_into_blocks(matrix, block_size):
             blocks.append((block, i, j))  # Garder les indices de début
     return blocks
 
-def optimize_block_mask(block, threshold=1e-2):
+def optimize_block_mask(block, threshold=1e-12):
     """
     Optimise le masque pour une sous-matrice donnée.
     """
@@ -104,7 +104,7 @@ def reconstruct_global_mask(blocks, masks, matrix_shape):
         global_mask[i:i+n, j:j+m] = mask
     return global_mask
 
-def initialize_mask_from_blocks(matrix, block_size, threshold=1e-2):
+def initialize_mask_from_blocks(matrix, block_size, threshold=1e-12):
     # Diviser la matrice en blocs
     blocks = split_into_blocks(matrix, block_size)
     
@@ -355,7 +355,7 @@ if __name__ == "__main__":
 
     # Exemple d'application
     block_size = 6  # Taille des sous-matrices
-    threshold = 1e-3  # Seuil pour détecter les contributions faibles
+    threshold = 1e-13  # Seuil pour détecter les contributions faibles
 
     #block_mask = initialize_mask_from_low_rank_blocks(sqrt_matrix, block_size=5)
     block_mask = initialize_mask_from_blocks(original_matrix, block_size)
@@ -369,10 +369,10 @@ if __name__ == "__main__":
     best_mask, best_rank = tabu_search_with_plot(
         sqrt_matrix, block_mask,
         tot_resets = 15,
-        num_n = 60,
+        num_n = 500,
         num_m = 1,
         tabu_size=10000, 
-        max_no_improve=5000, 
+        max_no_improve=3000, 
         max_iterations=10000000)
     stop = time.time()
     print((stop-start)//60, (stop-start)%60)

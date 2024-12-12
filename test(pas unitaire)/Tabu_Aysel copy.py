@@ -371,10 +371,10 @@ if __name__ == "__main__":
     best_mask, best_rank = tabu_search_with_plot(
         sqrt_matrix, block_mask,
         tot_resets = 15,
-        num_n = 60,
+        num_n = 500,
         num_m = 1,
         tabu_size=10000, 
-        max_no_improve=5000, 
+        max_no_improve=3000, 
         max_iterations=10000000)
     stop = time.time()
     print((stop-start)//60, (stop-start)%60)
