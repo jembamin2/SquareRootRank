@@ -32,7 +32,7 @@ def metaheuristic(M,
     
     def generate_clever_individual():
         
-        individual = np.random.choice([-1, 1], size=(m, n), p=[0.85,0.15])
+        # individual = np.random.choice([-1, 1], size=(m, n), p=[0.85,0.15])
         individual = np.ones((m, n))
         for i in range(m):
             for j in range(n):
@@ -232,10 +232,10 @@ def metaheuristic(M,
 
 #%%
 
-# M = read_matrix("test(pas unitaire)/correl5_matrice.txt")
+M = read_matrix("test(pas unitaire)/correl5_matrice.txt")
 # M = read_matrix("test(pas unitaire)/slack7gon_matrice.txt")
 # M = read_matrix("test(pas unitaire)/synthetic_matrice.txt")
-M = read_matrix("file.txt")
+# M = read_matrix("file.txt")
 
 
 # m, n = 10, 10
@@ -252,7 +252,7 @@ for M in (sols):
         M, 
         sa_solutions,
         pop_size=200,
-        generations=750, 
+        generations=1500, 
         mutation_rate=0.35, 
         num_parents=150, 
         num_children=300,
