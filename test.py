@@ -1,6 +1,6 @@
 import numpy as np
 
-randMat = np.random.rand(50, 50)
+randMat = np.random.randint(0, 50, size=(50, 50))
 
 np.savetxt('file.txt', randMat)
 

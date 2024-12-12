@@ -235,12 +235,13 @@ def metaheuristic(M,
 # M = read_matrix("test(pas unitaire)/correl5_matrice.txt")
 # M = read_matrix("test(pas unitaire)/slack7gon_matrice.txt")
 # M = read_matrix("test(pas unitaire)/synthetic_matrice.txt")
+M = read_matrix("file.txt")
 
 
 # m, n = 10, 10
 # M = np.random.rand(m, n)
 # sols = [opti.matrices2_slackngon(18)]
-sols = [opti.matrices1_ledm(110)]
+sols = [M]
 
 sol = []
 sa_solutions=[]
@@ -250,11 +251,11 @@ for M in (sols):
     best_pattern = metaheuristic(
         M, 
         sa_solutions,
-        pop_size=150,
-        generations=2500, 
-        mutation_rate=0.7, 
-        num_parents=80, 
-        num_children=150,
+        pop_size=200,
+        generations=750, 
+        mutation_rate=0.35, 
+        num_parents=150, 
+        num_children=300,
         max_stagnation=200
     )
 
