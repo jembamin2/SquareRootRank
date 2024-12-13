@@ -210,7 +210,7 @@ matrix=matrices1_ledm(10)
 
 max_iterations = 5000
 alpha = 0.1
-tol = 1e-10
+tol = 1e-10 
 
 best_mask, best_rank, smallest_singular = grasp_minimize_sqrt_rank(matrix, max_iterations, alpha, tol)
 

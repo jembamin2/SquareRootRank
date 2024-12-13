@@ -1,9 +1,12 @@
 import numpy as np
 
-x = np.array([[1, 2, 3,4], [4, 5, 6,4], [7, 8, 9,10]])
+# Créer une ligne de base aléatoire
+base_line = np.random.randint(0, 50, size=50)
 
-y = np.linalg.norm(x, ord='fro')
+# Générer une matrice où chaque ligne est une variation légère de base_line
+randMat = np.array([base_line + np.random.randint(0, 5, size=50) for _ in range(50)])
 
-print(y)  # Output: 16.881943016134134
+# Sauvegarder la matrice dans un fichier
+np.savetxt('file.txt', randMat, fmt='%d')
 
-print(np.random.choice([1,-1], size=(5,5)) )
+print("randMat has been saved to file.txt")

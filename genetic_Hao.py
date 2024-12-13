@@ -27,10 +27,12 @@ def metaheuristic(M,
     start=time.time()
     
     m, n = M.shape  # Dimensions de la matrice cible
-    indices = [(i, j) for i in range(m) for j in range(n)]
+    # indices = [(i, j) for i in range(m) for j in range(n)]
 
     
     def generate_clever_individual():
+        
+        # individual = np.random.choice([-1, 1], size=(m, n), p=[0.85,0.15])
         individual = np.ones((m, n))
         for i in range(m):
             for j in range(n):
@@ -39,7 +41,7 @@ def metaheuristic(M,
         return individual
     
     def generate_population(size, sa_solutions):
-        population = [generate_clever_individual() for _ in range(size-len(sa_solutions))]
+        population = [generate_clever_individual() for _ in range((size-len(sa_solutions)))]
         return sa_solutions + population
 
     # Fitness : Évaluation du pattern
@@ -122,14 +124,19 @@ def metaheuristic(M,
         return individual
 
     def mutate_1(individual):
-        swap_indices = random.sample(indices, 1)
-        for i, j in swap_indices:
-            individual[i, j] *= -1
+        i = random.randint(0, m-1)
+        j = random.randint(0, n-1)
+        individual[i, j] *= -1
         return individual
 
     def mutate_5(individual):
-        swap_indices = random.sample(indices, 5)
-        for i, j in swap_indices:
+        swap_indices = []
+        for _ in range(5): 
+            i = random.randint(0, m-1)
+            j = random.randint(0, n-1)
+            swap_indices.append((i, j))
+
+        for (i, j) in swap_indices:
             individual[i, j] *= -1
         return individual
 
@@ -186,7 +193,7 @@ def metaheuristic(M,
                 # Mutation
                 mutate_method = random.choices(
                     mutate_methods, 
-                    weights=[0.3, 0.4, 0.4, 0.25], 
+                    weights=[0.2, 0.2, 0.65, 0.1], 
                     k=1
                 )[0]
                 child = mutate_method(child)
@@ -230,15 +237,16 @@ def metaheuristic(M,
 
 #%%
 
-# M = read_matrix("test(pas unitaire)/correl5_matrice.txt")
+M = read_matrix("test(pas unitaire)/correl5_matrice.txt")
 # M = read_matrix("test(pas unitaire)/slack7gon_matrice.txt")
 # M = read_matrix("test(pas unitaire)/synthetic_matrice.txt")
+# M = read_matrix("file.txt")
 
 
 # m, n = 10, 10
 # M = np.random.rand(m, n)
-sols = [opti.matrices2_slackngon(18)]
-# M = opti.matrices1_ledm(14)
+# sols = [opti.matrices1_ledm(32)]
+sols = [M]
 
 sol = []
 sa_solutions=[]
@@ -248,12 +256,12 @@ for M in (sols):
     best_pattern = metaheuristic(
         M, 
         sa_solutions,
-        pop_size=150,
-        generations=2500, 
-        mutation_rate=0.7, 
-        num_parents=80, 
-        num_children=150,
-        max_stagnation=250
+        pop_size=200,
+        generations=1500, 
+        mutation_rate=0.75, 
+        num_parents=150, 
+        num_children=300,
+        max_stagnation=200
     )
 
     sol.append((M.shape[0],opti.fobj(M, best_pattern),time.time()-start))
