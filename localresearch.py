@@ -119,7 +119,7 @@ def local_search(matrix,T,nbr_swap,neighborhood_exploration):
         
     return best_mask,best_rank,smallest_singular
 
-def hierarchical_block_tabu_heuristic(matrix, initial_block_size=4, scaling_factor=2):
+def hierarchical_block_tabu_heuristic(matrix, initial_block_size=8, scaling_factor=2):
     n = matrix.shape[0]  # Size of the full matrix
 
     # Initialize a global mask with all ones
@@ -139,7 +139,7 @@ def hierarchical_block_tabu_heuristic(matrix, initial_block_size=4, scaling_fact
                 block_mask_initial = global_mask[i * block_size:(i + 1) * block_size, j * block_size:(j + 1) * block_size]
                 
                 # Apply tabu search to optimize the block
-                block_mask, _,poubelle = local_search(block,10000,1,1/block_size)
+                block_mask, _,poubelle = local_search(block,1000,1,1/10*block_size)
                 
                 # Update the corresponding portion of the global mask
                 global_mask[i * block_size:(i + 1) * block_size, j * block_size:(j + 1) * block_size] = block_mask
@@ -152,7 +152,7 @@ def hierarchical_block_tabu_heuristic(matrix, initial_block_size=4, scaling_fact
 #%%
 
 matrix=read_matrix("correl5_matrice.txt")
-#matrix=matrices1_ledm(120)
+matrix=matrices1_ledm(120)
 #matrix=matrices2_slackngon(50)
 
 
