@@ -131,7 +131,7 @@ def metaheuristic(M,
 
     def mutate_5(individual):
         swap_indices = []
-        for _ in range(5): 
+        for _ in range(8): 
             i = random.randint(0, m-1)
             j = random.randint(0, n-1)
             swap_indices.append((i, j))
@@ -140,14 +140,10 @@ def metaheuristic(M,
             individual[i, j] *= -1
         return individual
 
-    def mutate_swap_all(individual):
-        return -individual
-
     mutate_methods = [
         mutate_many,
         mutate_1,
-        mutate_5,
-        mutate_swap_all
+        mutate_5
     ]
 
     # Méthode pour sélectionner la nouvelle génération
@@ -193,7 +189,7 @@ def metaheuristic(M,
                 # Mutation
                 mutate_method = random.choices(
                     mutate_methods, 
-                    weights=[0.2, 0.2, 0.65, 0.1], 
+                    weights=[0.2, 0.2, 0.65], 
                     k=1
                 )[0]
                 child = mutate_method(child)
@@ -227,8 +223,8 @@ def metaheuristic(M,
         if best_fitness[0] == 2:
             break
 
-        if time.time()-start>300:
-            break
+        # if time.time()-start>300:
+        #     break
 
     print(time.time()-start)
     return bestPatternB
@@ -257,8 +253,8 @@ for M in (sols):
         M, 
         sa_solutions,
         pop_size=200,
-        generations=1500, 
-        mutation_rate=0.75, 
+        generations=2500, 
+        mutation_rate=0.45, 
         num_parents=150, 
         num_children=300,
         max_stagnation=200
