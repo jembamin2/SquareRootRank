@@ -97,22 +97,42 @@ def metaheuristic(M,
         child = np.concatenate((flat1[:point], flat2[point:]))
         return child.reshape(m, n)
     
-    def crossover_multi_point(parent1, parent2, num_points=3):
-        points = sorted(random.sample(range(m * n), num_points))
-        flat1, flat2 = parent1.flatten(), parent2.flatten()
-        child = flat1.copy()
-        for i, point in enumerate(points):
+    def crossover_even_odd_row(parent1, parent2):
+        child = np.zeros_like(parent1)
+        for i in range(m):
             if i % 2 == 0:
-                child[point:] = flat2[point:]
+                child[i] = parent1[i]
             else:
-                child[point:] = flat1[point:]
-        return child.reshape(m, n)
+                child[i] = parent2[i]
+        return child
+    
+    def crossover_even_odd_col(parent1, parent2):
+        child = np.zeros_like(parent1)
+        for j in range(n):
+            if j % 2 == 0:
+                child[:, j] = parent1[:, j]
+            else:
+                child[:, j] = parent2[:, j]
+        return child
+
+    # def crossover_multi_point(parent1, parent2, num_points=3):
+    #     points = sorted(random.sample(range(m * n), num_points))
+    #     flat1, flat2 = parent1.flatten(), parent2.flatten()
+    #     child = flat1.copy()
+    #     for i, point in enumerate(points):
+    #         if i % 2 == 0:
+    #             child[point:] = flat2[point:]
+    #         else:
+    #             child[point:] = flat1[point:]
+    #     return child.reshape(m, n)
 
     # Liste des méthodes de croisement
     crossover_methods = [
         crossover_uniform,
         crossover_one_point,
-        crossover_multi_point
+        # crossover_multi_point,
+        crossover_even_odd_row,
+        crossover_even_odd_col
     ]
     
     # Mutation : inverser -1 en 1 et 1 en -1
@@ -220,11 +240,11 @@ def metaheuristic(M,
             stagnation = 0
 
         print(f"Génération {gen+1} - Rang : {best_fitness[0]}, Petite valeur singulière : {best_fitness[1]}")
-        if best_fitness[0] == 2:
-            break
-
-        # if time.time()-start>300:
+        # if best_fitness[0] == 2:
         #     break
+
+        if time.time()-start>300:
+            break
 
     print(time.time()-start)
     return bestPatternB
@@ -233,16 +253,16 @@ def metaheuristic(M,
 
 #%%
 
-M = read_matrix("test(pas unitaire)/correl5_matrice.txt")
+# M = read_matrix("test(pas unitaire)/correl5_matrice.txt")
 # M = read_matrix("test(pas unitaire)/slack7gon_matrice.txt")
-# M = read_matrix("test(pas unitaire)/synthetic_matrice.txt")
+M = read_matrix("test(pas unitaire)/synthetic_matrice.txt")
 # M = read_matrix("file.txt")
 
-
+sols = [M]
 # m, n = 10, 10
 # M = np.random.rand(m, n)
-# sols = [opti.matrices1_ledm(32)]
-sols = [M]
+# sols = [opti.matrices2_slackngon(15)]
+
 
 sol = []
 sa_solutions=[]
@@ -257,7 +277,7 @@ for M in (sols):
         mutation_rate=0.45, 
         num_parents=150, 
         num_children=300,
-        max_stagnation=200
+        max_stagnation=250
     )
 
     sol.append((M.shape[0],opti.fobj(M, best_pattern),time.time()-start))
