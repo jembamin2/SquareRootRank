@@ -147,9 +147,9 @@ def save_matrix(M, P):
             continue  # Skip files that don't match the pattern or have errors
 
     # Generate a unique filename with date, time, and a random component
-    date_today = datetime.now()
     random_component = random.randint(1, 99999)
-    file_name = f"output_rank{current_rank}_{date_today}_{random_component}.txt"
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")  #  # Remplace ':' par '_'
+    file_name = f"output_rank{current_rank}_{smallest_singular_value}_{timestamp}_{random_component}.txt"
 
     # Save the new file
     with open(file_name, 'w') as fout:
@@ -1065,17 +1065,17 @@ def tabu_search(tabu_set, matrix, initial_mask, tot_resets, num_n, num_m, tabu_s
             if no_improve >= max_no_improve:
                 print(f"num iterations: {iteration}, rank = {best_rank}")
                 mask_history.append(best_mask)
-                save_matrix(matrix, best_mask)
                 break
 
 
             #print(f"Iteration {iteration + 1}: Current Rank = {current_rank}, Best Rank = {best_rank}")
-
+        
         # Mettre à jour le meilleur résultat global
         if best_rank < best_overall_rank or (best_rank == best_overall_rank and best_singular_value < best_overall_singular_value):
             best_overall_rank = best_rank
             best_overall_singular_value = best_singular_value
             best_overall_mask = best_mask
+            
 
         # Sauvegarder l'historique du voisinage
         all_rank_histories.append(rank_history)
@@ -1083,8 +1083,9 @@ def tabu_search(tabu_set, matrix, initial_mask, tot_resets, num_n, num_m, tabu_s
         # Réinitialiser pour un nouveau voisinage
         total_resets += 1
         max_no_improve = max_no_improve_d
+        save_matrix(matrix, best_overall_mask)
 
-
+    # save_matrix(matrix, best_overall_mask)
     return mask_history, best_overall_rank, rank_progress
 
 
@@ -1106,9 +1107,10 @@ def dynamic_neigh_modulation(iteration, max_iterations, initial_neighbors, initi
 
 # Example Application
 if __name__ == "__main__":
-    original_matrix = matrices1_ledm(16)
+    # original_matrix = matrices1_ledm(16)
     #original_matrix = read_matrix("correl5_matrice.txt")
     #original_matrix = read_matrix("synthetic_matrice.txt")
+    original_matrix = read_matrix("file.txt")
     sqrt_matrix = np.sqrt(original_matrix)
     in_rank, s = fobj(sqrt_matrix)
 

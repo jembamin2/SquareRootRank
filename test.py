@@ -1,6 +1,5 @@
 import numpy as np
 
-np.random.seed(0)
 # Dimensions de la matrice
 m, n, r =50, 50, 2
 
