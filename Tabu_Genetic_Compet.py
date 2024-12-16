@@ -146,9 +146,10 @@ def save_matrix(M, P):
         except (IndexError, ValueError, FileNotFoundError):
             continue  # Skip files that don't match the pattern or have errors
 
-    # Generate the filename with date and time
-    date_today = datetime.now().strftime('%Y-%m-%d-%H')
-    file_name = f"output_rank{current_rank}_{date_today}.txt"
+    # Generate a unique filename with date, time, and a random component
+    date_today = datetime.now()
+    random_component = random.randint(1, 99999)
+    file_name = f"output_rank{current_rank}_{date_today}_{random_component}.txt"
 
     # Save the new file
     with open(file_name, 'w') as fout:
@@ -184,7 +185,7 @@ def split_into_blocks(matrix, block_size):
             blocks.append((block, i, j))  # Garder les indices de début
     return blocks
 
-def optimize_block_mask(block, threshold=1e-2):
+def optimize_block_mask(block, threshold=1e-14):
     """
     Optimise le masque pour une sous-matrice donnée.
     """
@@ -205,7 +206,7 @@ def reconstruct_global_mask(blocks, masks, matrix_shape):
         global_mask[i:i+n, j:j+m] = mask
     return global_mask
 
-def initialize_mask_from_blocks(matrix, block_size, threshold=1e-2):
+def initialize_mask_from_blocks(matrix, block_size, threshold=1e-14):
     # Diviser la matrice en blocs
     blocks = split_into_blocks(matrix, block_size)
 
@@ -337,27 +338,6 @@ def initialize_population_with_blocks(matrix, block_size, population_size):
     
     return population
 
-
-def initialize_population_random_blocks(matrix, block_size, population_size):
-    """
-    Initialize a population of masks by randomly selecting blocks and setting them to 1 or -1.
-    """
-    n, m = matrix.shape
-    population = []
-    
-    for population_index in range(population_size):
-        mask = np.ones((n, m))  # Start with all ones
-
-        # Randomly select blocks and set them to -1
-        for i in range(0, n, block_size):
-            for j in range(0, m, block_size):
-                # Randomly decide if this block should be masked
-                if np.random.rand() < 0.5:  # 50% chance to mask the block
-                    mask[i:i+block_size, j:j+block_size] = -1
-
-        population.append(mask)
-    
-    return population
 
 def initialize_population_gaussian(matrix, block_size, population_size, mean=0, stddev=1):
     """
@@ -745,7 +725,7 @@ def dynamic_mutation(mask, mutation_rate, large_mutation_prob=0.1):
     return mask
 
 
-def structured_crossover(parent1, parent2, threshold=0.5):
+def structured_crossover(parent1, parent2, threshold=1e-14): #FIXME c'est bizarre non ? tu degages une ligne/colonne
     
     def rank_impact(matrix):
         rows, cols = matrix.shape
@@ -950,32 +930,32 @@ def hybrid_genetic_tabu_search(matrix, initial_population, num_generations, muta
 
     return best_mask, best_rank
 
-def generate_neighbors(current_mask, num_neighbors, num_modifications):
-    """
-    Generates neighbors by flipping a random set of entries in the current_mask.
-    """
-    n_rows, n_cols = current_mask.shape
-    neighbors = []
+# def generate_neighbors(current_mask, num_neighbors, num_modifications):
+#     """
+#     Generates neighbors by flipping a random set of entries in the current_mask.
+#     """
+#     n_rows, n_cols = current_mask.shape
+#     neighbors = []
 
-    # Randomly pick `num_modifications` positions to flip
-    total_elements = n_rows * n_cols
-    all_indices = np.arange(total_elements)
+#     # Randomly pick `num_modifications` positions to flip
+#     total_elements = n_rows * n_cols
+#     all_indices = np.arange(total_elements)
 
-    for _ in range(num_neighbors):
-        # Create a new neighbor by copying the current mask
-        neighbor = current_mask.copy()
+#     for _ in range(num_neighbors):
+#         # Create a new neighbor by copying the current mask
+#         neighbor = current_mask.copy()
 
-        # Randomly select `num_modifications` indices to flip
-        flip_indices = np.random.choice(all_indices, num_modifications, replace=False)
+#         # Randomly select `num_modifications` indices to flip
+#         flip_indices = np.random.choice(all_indices, num_modifications, replace=False)
 
-        # Flip the selected indices (invert their values)
-        for idx in flip_indices:
-            i, j = divmod(idx, n_cols)  # Convert flat index to 2D (i, j)
-            neighbor[i, j] *= -1
+#         # Flip the selected indices (invert their values)
+#         for idx in flip_indices:
+#             i, j = divmod(idx, n_cols)  # Convert flat index to 2D (i, j)
+#             neighbor[i, j] *= -1
 
-        neighbors.append(neighbor)
+#         neighbors.append(neighbor)
 
-    return neighbors
+#     return neighbors
 
 def generate_neighbors_sparse(current_mask, num_neighbors, num_modifications):
 
