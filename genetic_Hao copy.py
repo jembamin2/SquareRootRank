@@ -141,14 +141,10 @@ def metaheuristic(M,
             individual[i, j] *= -1
         return individual
 
-    def mutate_swap_all(individual):
-        return -individual
-
     mutate_methods = [
         mutate_many,
         mutate_1,
-        mutate_5,
-        mutate_swap_all
+        mutate_5
     ]
 
     # Méthode pour sélectionner la nouvelle génération
@@ -194,7 +190,7 @@ def metaheuristic(M,
                 # Mutation
                 mutate_method = random.choices(
                     mutate_methods, 
-                    weights=[0.2, 0.2, 0.65, 0.1], 
+                    weights=[0.2, 0.2, 0.65], 
                     k=1
                 )[0]
                 child = mutate_method(child)
@@ -225,11 +221,11 @@ def metaheuristic(M,
             stagnation = 0
 
         print(f"Génération {gen+1} - Rang : {best_fitness[0]}, Petite valeur singulière : {best_fitness[1]}")
-        if best_fitness[0] == 2:
-            break
+        # if best_fitness[0] == 2:
+        #     break
 
-        if time.time()-start>300:
-            break
+        # if time.time()-start>300:
+        #     break
 
     print(time.time()-start)
     return bestPatternB
@@ -487,7 +483,7 @@ M = read_matrix("test(pas unitaire)/correl5_matrice.txt")
 
 # m, n = 10, 10
 # M = np.random.rand(m, n)
-# sols = [opti.matrices1_ledm(32)]
+# M = opti.matrices1_ledm(15)
 sols = [M]
 
 sol = []
@@ -501,7 +497,6 @@ in_rank, s = fobj(sqrt_matrix)
 
 # Exemple d'application
 block_size = 6  # Taille des sous-matrices
-threshold = 1e-12  # Seuil pour détecter les contributions faibles
 
 #block_mask = initialize_mask_from_low_rank_blocks(sqrt_matrix, block_size=5)
 block_mask = initialize_mask_from_blocks(original_matrix, block_size)
@@ -509,11 +504,11 @@ print("Masque basé sur blocs :", block_mask)
 
 # Appliquer la recherche tabou avec graphique
 start = time.time()
-for i in range(20):
+for i in range(25):
     #best_mask, best_rank = tabu_search_with_plot(sqrt_matrix, initial_mask,mod_neighbors = (0.5, 0.01), mod_mod = (0.025, 0.01), tabu_size=1000, max_no_improve=2000, max_iterations=1000000)
     best_mask, best_rank = tabu_search_with_plot(
         sqrt_matrix, block_mask,
-        tot_resets = 3,
+        tot_resets = 1,
         num_n = 200,
         num_m = 1,
         tabu_size=100000, 
@@ -529,9 +524,9 @@ start=time.time()
 best_pattern = metaheuristic(
     M, 
     sa_solutions,
-    pop_size=200,
+    pop_size=250,
     generations=1500, 
-    mutation_rate=0.75, 
+    mutation_rate=0.6, 
     num_parents=150, 
     num_children=300,
     max_stagnation=200

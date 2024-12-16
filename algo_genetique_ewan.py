@@ -148,13 +148,11 @@ def rech_loc_mut(compteur,childs, nb_mut):
 
 
 
-# Exemple d'utilisation
-n = 15
-m=n
-matrix = matrices1_ledm( n)
-#matrix=read_matrix("hao_120.txt")
-sqrt_matrix=setup_sqrt_matrix(matrix)
 
+# matrix = matrices1_ledm( n)
+matrix=read_matrix("file.txt")
+sqrt_matrix=setup_sqrt_matrix(matrix)
+m,n = matrix.shape
 
 
 #%%
