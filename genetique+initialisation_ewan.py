@@ -119,21 +119,34 @@ def rand_mutation(childs, nb_mut):
     return childs
 
 
+from scipy.linalg import circulant
+def matrices2_slackngon(n):
+  M  = circulant(np.cos(np.pi/n)-np.cos(np.pi/n + 2*np.pi*np.arange(0,n,1)/n))
+  M /= M[0,2]
+  M  = np.maximum(M,0)
+  for i in range(n):
+    M[i,i] = 0
+    if i<n-1:
+      M[i,i+1] = 0
+    else:
+      M[i,0] = 0
+  return M
 
 
 #%%
         
 # Exemple d'utilisation
-n = 120
+n = 22
 m=n
-#initial_matrix = matrices1_ledm( n)
-initial_matrix=read_matrix("test(pas unitaire)/correl5_matrice.txt")
+initial_matrix = matrices1_ledm( n)
+initial_matrix=matrices2_slackngon(n)
+#initial_matrix=read_matrix("hao_120.txt")
 sqrt_matrix=setup_sqrt_matrix(initial_matrix)
 
 
 
-initial_block_size=8
-scaling_factor=2
+initial_block_size=7
+scaling_factor=3
 n = initial_matrix.shape[0]  # Size of the full matrix
 
 # Initialize a global mask with all ones
@@ -152,7 +165,7 @@ while block_size <= n:
             block_mask_initial = global_mask[i * block_size:(i + 1) * block_size, j * block_size:(j + 1) * block_size]
             
             # Apply tabu search to optimize the block
-            block_mask = genetique(block, block_mask_initial, 300)
+            block_mask = genetique(block, block_mask_initial, 600)
             
             # Update the corresponding portion of the global mask
             global_mask[i * block_size:(i + 1) * block_size, j * block_size:(j + 1) * block_size] = block_mask

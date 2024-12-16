@@ -149,10 +149,10 @@ def rech_loc_mut(compteur,childs, nb_mut):
 
 
 # Exemple d'utilisation
-n = 32
+n = 15
 m=n
 matrix = matrices1_ledm( n)
-#matrix=read_matrix("test(pas unitaire)/slack7gon_matrice.txt")
+#matrix=read_matrix("hao_120.txt")
 sqrt_matrix=setup_sqrt_matrix(matrix)
 
 
