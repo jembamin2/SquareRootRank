@@ -148,12 +148,25 @@ def rech_loc_mut(compteur,childs, nb_mut):
 
     return childs
 
+from scipy.linalg import circulant
+def matrices2_slackngon(n):
+  M  = circulant(np.cos(np.pi/n)-np.cos(np.pi/n + 2*np.pi*np.arange(0,n,1)/n))
+  M /= M[0,2]
+  M  = np.maximum(M,0)
+  for i in range(n):
+    M[i,i] = 0
+    if i<n-1:
+      M[i,i+1] = 0
+    else:
+      M[i,0] = 0
+  return M
 
 
 
-#matrix = matrices1_ledm(120)
+#matrix = matrices1_ledm(35)
 #matrix=read_matrix("test(pas unitaire)/slack7gon_matrice.txt")
-matrix=read_matrix("correl5_matrice.txt")
+#matrix=matrices2_slackngon(15)
+matrix=read_matrix("test(pas unitaire)/synthetic_matrice.txt")
 n,m=matrix.shape
 sqrt_matrix=setup_sqrt_matrix(matrix)
 
