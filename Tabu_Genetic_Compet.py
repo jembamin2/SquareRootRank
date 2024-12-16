@@ -110,17 +110,55 @@ def print_top_5(population, matrix, label, seen_masks=set(), num_to_optimise=5):
     return selected_indices + redo  # Return indices of the top 5 unique masks
 
 
-def save_matrix(M, P):
-    
-    sing_values = np.linalg.svd(P*np.sqrt(M), compute_uv=False)    
-    tol         = max(M.shape)*sing_values[0]*np.finfo(float).eps 
-    ind_nonzero = np.where(sing_values > tol)[0]                   
-       
+from datetime import datetime
+import os
 
-    with open('output.txt', 'w') as fout:
+def save_matrix(M, P):
+    # Calculate singular values
+    sing_values = np.linalg.svd(P * M, compute_uv=False)
+    tol = max(M.shape) * sing_values[0] * np.finfo(float).eps
+    ind_nonzero = np.where(sing_values > tol)[0]
+
+    # Current rank and largest singular value
+    current_rank = len(ind_nonzero)
+    smallest_singular_value = sing_values[0]
+
+    # Check for existing files
+    existing_files = [f for f in os.listdir('.') if f.startswith("output_rank")]
+
+    for file in existing_files:
+        try:
+            # Extract rank from the filename
+            rank_in_file = int(file.split('_')[1][4:])  # Extract "5" from "output_rank5_..."
+            if rank_in_file < current_rank:
+                print("Already found better")
+                return  # Exit without saving
+
+            # If the file has the same rank, compare singular values
+            if rank_in_file == current_rank:
+                with open(file, 'r') as f:
+                    lines = f.readlines()
+                    # Read the last singular value in the file
+                    last_saved_singular_value = float(lines[-1].strip())
+                    if last_saved_singular_value<= smallest_singular_value:
+                        print("Not better")
+                        return  # Exit without saving
+        except (IndexError, ValueError, FileNotFoundError):
+            continue  # Skip files that don't match the pattern or have errors
+
+    # Generate the filename with date and time
+    date_today = datetime.now().strftime('%Y-%m-%d-%H')
+    file_name = f"output_rank{current_rank}_{date_today}.txt"
+
+    # Save the new file
+    with open(file_name, 'w') as fout:
         np.savetxt(fout, P, fmt='%.0f', delimiter=' ')
         for i in ind_nonzero:
-            fout.write(f'{i}\n')
+            fout.write(f'{sing_values[i]}\n')
+
+    print(f"Matrix saved to {file_name}")
+
+
 
 #%%
 
@@ -222,7 +260,6 @@ def ensure_unique_population(masks, population_size, matrix=None, block_size=4):
             if mask_tuple not in unique_masks:
                 unique_masks.add(mask_tuple)
                 deduplicated.append(mask)
-
     return deduplicated[:population_size]
 
 
@@ -232,7 +269,7 @@ def hybrid_initialize_population(matrix, population_size):
     checker_based = initialize_population_checkerboard(matrix, block_size=1, population_size=population_size)
     strided_based = initialize_population_strided_blocks(matrix, block_size=1, population_size=population_size)
 
-    # Add noise-based masks
+    # Add noise-based masks ADD TO ALL
     noise_masks = [add_noise_to_mask(mask, noise_rate=0.2) for mask in block_based]
 
     # Select top masks from each strategy based on objective function
@@ -296,6 +333,7 @@ def initialize_population_with_blocks(matrix, block_size, population_size):
                         mask[shifted_i:shifted_i+block_size, shifted_j:shifted_j+block_size] = -1
 
             population.append(mask)
+        
     
     return population
 
@@ -332,8 +370,7 @@ def initialize_population_gaussian(matrix, block_size, population_size, mean=0, 
         # Sample a Gaussian distribution for the mask
         mask = np.random.normal(loc=mean, scale=stddev, size=(n, m))
         
-        # Optionally, we can normalize the mask (e.g., scaling to [0, 1] range)
-        mask = np.clip(mask, -1, 1)  # Clip values to range between -1 and 1
+        mask = np.where(mask > 0, 1, -1)  # Values greater than 0 become 1, others become -1
         
         population.append(mask)
     
@@ -573,8 +610,7 @@ def tabu_block(matrix, initial_mask, tot_resets = 1, num_n = 25, num_m = 1, tabu
                 current_singular_value = best_neighbor_singular_value
 
                 rank_history.append((best_rank, current_singular_value))
-
-                #if current_rank < best_rank:
+                
                 if current_rank <= best_rank and compareP1betterthanP2(matrix, current_mask, best_mask):
 
                     best_mask = current_mask.copy()
@@ -667,29 +703,21 @@ def diversify_population(matrix, population_size, mask_shape, block_size):
     return population
 
 def select_diverse_parents(population, fitness_scores, num_parents):
-    """
-    Select a diverse set of parents based on fitness and diversity.
-    Optimized for faster operations with large populations.
-    """
     selected_parents = []
-    population_indices = set(range(len(population)))  # Use a set for faster removal
+    population_indices = set(range(len(population))) 
 
     while len(selected_parents) < num_parents:
         current_indices = list(population_indices)
-        num_candidates = min(5, len(current_indices))  # Adjust candidate size for small populations
+        num_candidates = min(5, len(current_indices))
         candidates = np.random.choice(current_indices, size=num_candidates, replace=False)
 
-        # Evaluate fitness of candidates
-        candidate_fitness = [fitness_scores[i][0] for i in candidates]  # Compare by rank or first fitness metric
+        candidate_fitness = [fitness_scores[i][0] for i in candidates]
 
-        # Select the best candidate
         best_idx_in_candidates = np.argmin(candidate_fitness)
         best_candidate_idx = candidates[best_idx_in_candidates]
 
-        # Add to selected parents
         selected_parents.append(population[best_candidate_idx])
 
-        # Remove from population_indices
         if best_candidate_idx in population_indices:
             population_indices.remove(best_candidate_idx)
 
@@ -697,9 +725,6 @@ def select_diverse_parents(population, fitness_scores, num_parents):
 
 
 def dynamic_mutation(mask, mutation_rate, large_mutation_prob=0.1):
-    """
-    Dynamically apply mutations with a chance for larger structural mutations.
-    """
     n_rows, n_cols = mask.shape
     num_mutations = int(n_rows * n_cols * mutation_rate)
     mutation_indices = np.random.choice(n_rows * n_cols, size=num_mutations, replace=False)
@@ -719,24 +744,6 @@ def dynamic_mutation(mask, mutation_rate, large_mutation_prob=0.1):
 
     return mask
 
-# def structured_crossover(parent1, parent2):
-#     """
-#     Perform a structured crossover by alternating rows and columns.
-#     """
-#     n_rows, n_cols = parent1.shape
-#     offspring1, offspring2 = parent1.copy(), parent2.copy()
-
-#     for i in range(n_rows):
-#         if i % 2 == 0:  # Alternate rows
-#             offspring1[i, :] = parent2[i, :]
-#             offspring2[i, :] = parent1[i, :]
-
-#     for j in range(n_cols):
-#         if j % 2 == 0:  # Alternate columns
-#             offspring1[:, j] = parent2[:, j]
-#             offspring2[:, j] = parent1[:, j]
-
-#     return offspring1, offspring2
 
 def structured_crossover(parent1, parent2, threshold=0.5):
     
@@ -844,14 +851,13 @@ def hybrid_genetic_tabu_search(matrix, initial_population, num_generations, muta
             if mask_bytes not in seen_masks:
                 seen_masks.add(mask_bytes)
             print(f" \n Testing Mask {count + 1} ({idx}) with rank {fobj(matrix * population[idx])[0]}")
-            count += 1
             tabu_masks, tabu_rank, rank_progress = tabu_search(
                     tabu_set, matrix, 
                     population[idx].astype(np.float64), 
-                    max(1, tabu_resets - generation), tabu_neighbors,
-                    tabu_modifications*((generation + 1)//3), tabu_size, max_no_improve, max_iterations
-            )
-        
+                    max(1, tabu_resets - (generation*3) - count*2), tabu_neighbors,
+                    tabu_modifications*((generation + 1)//3), tabu_size, max_no_improve, max_iterations)
+            count += 1
+
             for mask in tabu_masks:
                 mask_rank, _ = fobj(matrix * mask)
              
@@ -937,8 +943,8 @@ def hybrid_genetic_tabu_search(matrix, initial_population, num_generations, muta
     plt.ylabel('Rank')
     plt.legend(loc='upper right', fontsize='small', ncol=2)
     plt.grid(True)
-    plt.yticks(range(best_rank, matrix.shape[0] + 1))  # Replace min_rank and max_rank with appropriate values
-    plt.axhline(y=best_rank, color='gray', linestyle='--', linewidth=1)  # Replace min_rank with the lowest rank value
+    plt.yticks(range(best_rank, matrix.shape[0] + 1)) 
+    plt.axhline(y=best_rank, color='gray', linestyle='--', linewidth=1) 
     plt.show()
 
 
@@ -972,31 +978,22 @@ def generate_neighbors(current_mask, num_neighbors, num_modifications):
     return neighbors
 
 def generate_neighbors_sparse(current_mask, num_neighbors, num_modifications):
-    """
-    Generates neighbors by flipping a random set of non-zero entries in the current_mask.
-    This version avoids transforming to a sparse matrix but treats sparsity by only modifying non-zero entries.
-    """
-    # Get the non-zero indices (where values are non-zero)
-    non_zero_indices = np.nonzero(current_mask)  # Get the row and column indices of non-zero elements
-    non_zero_elements = len(non_zero_indices[0])  # The number of non-zero elements
+
+    non_zero_indices = np.nonzero(current_mask) 
+    non_zero_elements = len(non_zero_indices[0]) 
     
-    # Ensure that there are enough non-zero elements to modify
     if non_zero_elements < num_modifications:
-        raise ValueError("Number of non-zero elements is less than num_modifications")
+        raise ValueError("Que des 0s")
     
     neighbors = []
 
     for _ in range(num_neighbors):
-        # Create a new neighbor by copying the current mask
         neighbor = current_mask.copy()
-
-        # Randomly select `num_modifications` non-zero indices to flip
         flip_indices = np.random.choice(non_zero_elements, num_modifications, replace=False)
 
-        # Flip the selected non-zero indices (invert their values)
         for idx in flip_indices:
             i, j = non_zero_indices[0][idx], non_zero_indices[1][idx]
-            neighbor[i, j] = -neighbor[i, j]  # Flip the value (invert sign)
+            neighbor[i, j] = -neighbor[i, j] 
 
         neighbors.append(neighbor)
 
@@ -1009,6 +1006,7 @@ def tabu_search(tabu_set, matrix, initial_mask, tot_resets, num_n, num_m, tabu_s
     # Historique pour tous les voisinages
     all_rank_histories = []
     rank_history = []
+    mask_history = []
     best_overall_rank = float('inf')
     best_overall_singular_value = float('inf')
     best_overall_mask = None
@@ -1030,8 +1028,6 @@ def tabu_search(tabu_set, matrix, initial_mask, tot_resets, num_n, num_m, tabu_s
         best_singular_value = current_singular_value
         no_improve = 0
         
-        mask_history = []
-        rank_history = []
         print(f"\n === Exploration du voisinage {total_resets + 1} ===")
         for iteration in range(max_iterations):
             num_neighbors, num_modifications = dynamic_neigh_modulation(iteration, max_iterations, num_n, num_m)
@@ -1068,6 +1064,7 @@ def tabu_search(tabu_set, matrix, initial_mask, tot_resets, num_n, num_m, tabu_s
                 mask_history.append(best_mask)
                 if current_rank - best_rank <= 1:
                     max_no_improve *= 1.05
+                    max_no_improve = min(max_no_improve, 250)
                 no_improve = 0
             else:
                 no_improve += 1
@@ -1088,6 +1085,7 @@ def tabu_search(tabu_set, matrix, initial_mask, tot_resets, num_n, num_m, tabu_s
             if no_improve >= max_no_improve:
                 print(f"num iterations: {iteration}, rank = {best_rank}")
                 mask_history.append(best_mask)
+                save_matrix(matrix, best_mask)
                 break
 
 
@@ -1128,7 +1126,7 @@ def dynamic_neigh_modulation(iteration, max_iterations, initial_neighbors, initi
 
 # Example Application
 if __name__ == "__main__":
-    original_matrix = matrices1_ledm(18)
+    original_matrix = matrices1_ledm(16)
     #original_matrix = read_matrix("correl5_matrice.txt")
     #original_matrix = read_matrix("synthetic_matrice.txt")
     sqrt_matrix = np.sqrt(original_matrix)
@@ -1139,29 +1137,20 @@ if __name__ == "__main__":
     print("Singular Values:", s)
 
     # Genetic Algorithm Parameters
-    population_size = 120
-    num_generations = 1
+    population_size = 300
+    num_generations = 10
     mutation_rate = 0.3
-    num_parents = 60
+    num_parents = 200
     
     # Parameters for Tabu Search
-    tabu_resets = 2
-    tabu_neighbors = 70
+    tabu_resets = 7
+    tabu_neighbors = 200
     tabu_modifications = 1
     tabu_size = 100000
-    max_no_improve = 5000
-    max_iterations = 10000
-      
-    # Assuming you have initialized populations with different methods
-    block_based = initialize_population_with_blocks(sqrt_matrix, block_size=4, population_size=int(population_size))
-    gaussian_based = initialize_population_gaussian(sqrt_matrix, block_size=4, population_size=int(population_size))
-    checker_based = initialize_population_checkerboard(sqrt_matrix, block_size=4, population_size=int(population_size))
-    strided_based = initialize_population_strided_blocks(sqrt_matrix, block_size=4, population_size=int(population_size))
-    random_based = generate_improved_random_masks([], num_random=int(population_size), mask_shape=sqrt_matrix.shape, matrix=sqrt_matrix, walk_steps=10, keep_top_k=3)
-    
+    max_no_improve = 50
+    max_iterations = 1000 
 
     initial_population = hybrid_initialize_population(sqrt_matrix, population_size)
-    
     
     # Run Hybrid Algorithm
     start = time.time()
@@ -1172,8 +1161,6 @@ if __name__ == "__main__":
         max_no_improve=max_no_improve, max_iterations=max_iterations
     )
     stop = time.time()
-
-    print((stop-start)//60, (stop-start)%60)
 
     # Results
     print("\nBest Mask Found:\n", best_mask)
@@ -1189,3 +1176,5 @@ if __name__ == "__main__":
     optimized_rank, _ = fobj(sqrt_matrix *check_mask)
     print("\nOptimized Matrix:\n", sqrt_matrix *check_mask)
     print("Optimized Rank:", optimized_rank)
+
+    print((stop-start)//60, (stop-start)%60)

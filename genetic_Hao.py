@@ -255,8 +255,8 @@ def metaheuristic(M,
 
 # M = read_matrix("test(pas unitaire)/correl5_matrice.txt")
 # M = read_matrix("test(pas unitaire)/slack7gon_matrice.txt")
-M = read_matrix("test(pas unitaire)/synthetic_matrice.txt")
-# M = read_matrix("file.txt")
+# M = read_matrix("test(pas unitaire)/synthetic_matrice.txt")
+M = read_matrix("file.txt")
 
 sols = [M]
 # m, n = 10, 10

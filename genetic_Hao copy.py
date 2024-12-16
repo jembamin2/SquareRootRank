@@ -418,7 +418,7 @@ def tabu_search_with_plot(matrix, initial_mask, tot_resets, num_n, num_m, tabu_s
                     print(f"no improve: {iteration - no_improve}, rank = {current_rank}")
                     no_improve = 0
                 else:
-                    print(f"no improve: {iteration - no_improve}, rank = {current_rank}")
+                    print(f"no improve: {iteration - no_improve}, rank_naze = {current_rank}")
                     no_improve += 1
 
                 # Add to tabu set
@@ -475,10 +475,10 @@ def tabu_search_with_plot(matrix, initial_mask, tot_resets, num_n, num_m, tabu_s
 
 #%%
 
-M = read_matrix("test(pas unitaire)/correl5_matrice.txt")
+# M = read_matrix("test(pas unitaire)/correl5_matrice.txt")
 # M = read_matrix("test(pas unitaire)/slack7gon_matrice.txt")
 # M = read_matrix("test(pas unitaire)/synthetic_matrice.txt")
-# M = read_matrix("file.txt")
+M = read_matrix("file.txt")
 
 
 # m, n = 10, 10
