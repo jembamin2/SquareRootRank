@@ -1,14 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import time
-
-
-#%%
-
 from scipy.linalg import circulant
 import os
-import datetime
-import random
+
+#%%
 
 def save_matrix(M, P):
     # Calculate singular values
@@ -113,12 +109,6 @@ def matrices1_ledm(n):
 def apply_mask(matrix, mask):
     return matrix * mask
 
-# Calculer le rang
-def compute_rank(matrix):
-    U, S, Vh = np.linalg.svd(matrix, full_matrices=False)
-    rank = np.sum(S > 1e-10)
-    return rank
-
 def fobj(M):
     sing_values = np.linalg.svd(M, compute_uv=False)
     tol = max(M.shape) * sing_values[0] * np.finfo(float).eps
@@ -130,6 +120,7 @@ def fobj2(M, P):
     tol = max(M.shape) * sing_values[0] * np.finfo(float).eps
     ind_nonzero = np.where(sing_values > tol)[0]
     return len(ind_nonzero), sing_values[ind_nonzero[-1]]
+
 def compareP1betterthanP2(M,P1,P2):
   r1, s1 = fobj(M*P1) #on récupère les deux objectifs pour le pattern P1
   r2, s2 = fobj(M*P2) #on récupère les deux objectifs pour le pattern P2
@@ -668,39 +659,6 @@ def tabu_search_with_plot(matrix, initial_mask, tot_resets, num_n, num_m, tabu_s
     plt.show()
 
     return best_overall_mask, best_overall_rank, mask_history
-
-
-def reconstruct_mask_from_blocks(matrix, blocks, max_rank=3):
-
-    n, m = matrix.shape
-    global_mask = np.ones((n, m))
-
-    for block, i, j, h, w in blocks:
-        if np.linalg.matrix_rank(block) <= max_rank:
-            global_mask[i:i+h, j:j+w] = -1
-    
-    return global_mask
-
-
-
-def initialize_mask_from_blocks_fast(matrix, block_size, mask_method, **kwargs):
-    n_rows, n_cols = matrix.shape
-    mask = np.ones_like(matrix)
-    
-    for i in range(0, n_rows, block_size):
-        for j in range(0, n_cols, block_size):
-            block = matrix[i:i+block_size, j:j+block_size]
-            
-            block_mask = simple_block_mask(block, **kwargs)
-            
-            mask[i:i+block_size, j:j+block_size] = block_mask
-    
-    return mask
-
-def simple_block_mask(block, threshold=1e-2):
-    mask = np.ones_like(block)
-    mask[np.abs(block) < threshold] = -1
-    return mask
 
 def dynamic_neigh_modulation(iteration, max_iterations, initial_neighbors, initial_modifications):
     progress = iteration / max_iterations
