@@ -1,7 +1,7 @@
 import numpy as np
 
 # Dimensions de la matrice
-m, n, r =50, 50, 2
+m, n, r =60, 60, 2
 
 # Generate random matrices with values between 0 and 1
 matrix_mr = np.random.rand(m, r)
