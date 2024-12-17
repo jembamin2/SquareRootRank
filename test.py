@@ -1,15 +1,15 @@
 import numpy as np
 
 # Dimensions de la matrice
-m, n, r =60, 60, 2
+m, n, r =30, 30, 4
 
 # Generate random matrices with values between 0 and 1
 matrix_mr = np.random.rand(m, r)
 matrix_rn = np.random.rand(r, n)
 
-# Generate random masks with values between -1 and 1
-mask_mr = np.random.uniform(-1, 1, (m, r))
-mask_rn = np.random.uniform(-1, 1, (r, n))
+# Generate random masks with values of -1 or 1
+mask_mr = np.random.choice([-1, 1], size=(m, r))
+mask_rn = np.random.choice([-1, 1], size=(r, n))
 
 # Apply the masks
 masked_mr = matrix_mr * mask_mr
