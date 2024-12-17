@@ -70,8 +70,6 @@ def metaheuristic(M,
                     del population[i]
                     break
         return selected_parents
-
-
     
     def select_parents_roulette(population, num_parents):
         """Sélection par roulette.""" #A MODIFIER POUR PROBA
@@ -263,7 +261,7 @@ sols = [M]
 # M = np.random.rand(m, n)
 # sols = [opti.matrices2_slackngon(15)]
 
-
+    
 sol = []
 sa_solutions=[]
 
