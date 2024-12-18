@@ -453,18 +453,22 @@ def generate_improved_random_masks(existing_masks, num_random, mask_shape, matri
     return existing_masks
 
 def hierarchical_block_tabu_heuristic(matrix, initial_block_size=2, scaling_factor=2):
-    n = matrix.shape[0]  
-
-    global_mask = np.ones_like(matrix, dtype=int)
+    m, n = matrix.shape
+    k = max(m, n)
+    global_mask = np.ones(shape=(m, n))
     block_size = initial_block_size
-    while block_size <= n:
-        num_blocks = int(n // block_size)  
-        for i in range(num_blocks):
-            for j in range(num_blocks):
-                block = matrix[i * block_size:(i + 1) * block_size, j * block_size:(j + 1) * block_size]
-                block_mask_initial = global_mask[i * block_size:(i + 1) * block_size, j * block_size:(j + 1) * block_size]
+    
+    while block_size <= k:
+        num_blocks_m = (m + block_size - 1) // block_size
+        num_blocks_n = (n + block_size - 1) // block_size
+
+        for i in range(num_blocks_m):
+            for j in range(num_blocks_n):
+                block = matrix[i * block_size : min((i + 1) * block_size, m), j * block_size : min((j + 1) * block_size, n)]
+                block_mask_initial = global_mask[i * block_size : min((i + 1) * block_size, m), j * block_size : min((j + 1) * block_size, n)]
                 block_mask, _ = tabu_block(block, block_mask_initial)
-                global_mask[i * block_size:(i + 1) * block_size, j * block_size:(j + 1) * block_size] = block_mask
+                global_mask[i * block_size : min((i + 1) * block_size, m),  j * block_size : min((j + 1) * block_size, n)] = block_mask
+
         block_size *= scaling_factor
 
     return global_mask
@@ -485,7 +489,8 @@ def tabu_block(matrix, initial_mask, tot_resets = 1, num_n = 25, num_m = 1, tabu
     while total_resets < tot_resets and best_rank > 2: 
         current_mask = next_mask.copy()
         best_mask = current_mask.copy()
-        current_rank, current_singular_value = fobj(matrix *current_mask)
+        M = matrix*current_mask
+        current_rank, current_singular_value = fobj(M)
         best_rank = current_rank
         best_singular_value = current_singular_value
         no_improve = 0
@@ -670,8 +675,9 @@ def dynamic_neigh_modulation(iteration, max_iterations, initial_neighbors, initi
 #%%
 if __name__ == "__main__":
     #original_matrix = read_matrix("synthetic_matrice.txt")
-    original_matrix = read_matrix("correl5_matrice.txt")
+    #original_matrix = read_matrix("correl5_matrice.txt")
     #original_matrix = matrices1_ledm(50)
+    original_matrix = read_matrix("file.txt")
     sqrt_matrix = np.sqrt(original_matrix)
     in_rank, s = fobj(sqrt_matrix)
     print("Matrice originale :\n", original_matrix)
@@ -706,129 +712,129 @@ if __name__ == "__main__":
 #%%
 # Exemple : fixer les paramètres par défaut
 
-original_matrix = matrices1_ledm(50)
-sqrt_matrix = np.sqrt(original_matrix)
-in_rank, s = fobj(sqrt_matrix)
+# original_matrix = matrices1_ledm(50)
+# sqrt_matrix = np.sqrt(original_matrix)
+# in_rank, s = fobj(sqrt_matrix)
     
-default_num_n = 50
-default_num_m = 1
-default_tabu_size = 1000
-default_max_no_improve = 50
+# default_num_n = 50
+# default_num_m = 1
+# default_tabu_size = 1000
+# default_max_no_improve = 50
 
-# Initialiser des dictionnaires pour stocker les résultats
-results = {'num_n': [], 'rank': [], 'time': []}
+# # Initialiser des dictionnaires pour stocker les résultats
+# results = {'num_n': [], 'rank': [], 'time': []}
 
-# Boucle pour tester différentes valeurs de num_n
-for num_n in [50, 200, 350, 500]:
-    initial_population = hybrid_initialize_population(sqrt_matrix, 1000)
-    best  = select_promising_masks(initial_population, sqrt_matrix, "Best", 1)
+# # Boucle pour tester différentes valeurs de num_n
+# for num_n in [50, 200, 350, 500]:
+#     initial_population = hybrid_initialize_population(sqrt_matrix, 1000)
+#     best  = select_promising_masks(initial_population, sqrt_matrix, "Best", 1)
     
-    for idx in best:
-        print(initial_population[idx])
-        start = time.time()
-        best_mask, best_rank, tabu_masks = tabu_search_with_plot(
-            sqrt_matrix, initial_population[idx],
-            tot_resets=3,
-            num_n=num_n,
-            num_m=default_num_m,
-            tabu_size=default_tabu_size,
-            max_no_improve=default_max_no_improve,
-            max_iterations=10000
-        )
-        stop = time.time()
+#     for idx in best:
+#         print(initial_population[idx])
+#         start = time.time()
+#         best_mask, best_rank, tabu_masks = tabu_search_with_plot(
+#             sqrt_matrix, initial_population[idx],
+#             tot_resets=3,
+#             num_n=num_n,
+#             num_m=default_num_m,
+#             tabu_size=default_tabu_size,
+#             max_no_improve=default_max_no_improve,
+#             max_iterations=10000
+#         )
+#         stop = time.time()
     
-        # Stocker les résultats
-        results['num_n'].append(num_n)
-        results['rank'].append(best_rank)
-        results['time'].append(stop - start)
-        print(f"num_n = {num_n}, Rang = {best_rank}, Temps = {(stop - start):.2f} sec")
+#         # Stocker les résultats
+#         results['num_n'].append(num_n)
+#         results['rank'].append(best_rank)
+#         results['time'].append(stop - start)
+#         print(f"num_n = {num_n}, Rang = {best_rank}, Temps = {(stop - start):.2f} sec")
 
 
-plt.figure(figsize=(10, 6))
-plt.plot(results['num_n'], results['rank'], marker='o', linestyle='-', color='b')
-plt.title("Influence de num_n sur le Rang obtenu")
-plt.xlabel("num_n (nombre de voisins)")
-plt.ylabel("Rang minimal obtenu")
-plt.grid()
-plt.show()
+# plt.figure(figsize=(10, 6))
+# plt.plot(results['num_n'], results['rank'], marker='o', linestyle='-', color='b')
+# plt.title("Influence de num_n sur le Rang obtenu")
+# plt.xlabel("num_n (nombre de voisins)")
+# plt.ylabel("Rang minimal obtenu")
+# plt.grid()
+# plt.show()
 
-default_num_n = 50
-default_num_m = 1
-default_tabu_size = 1000
-default_max_no_improve = 50
+# default_num_n = 50
+# default_num_m = 1
+# default_tabu_size = 1000
+# default_max_no_improve = 50
 
-# Initialiser des dictionnaires pour stocker les résultats
-results = {'num_m': [], 'rank': [], 'time': []}
+# # Initialiser des dictionnaires pour stocker les résultats
+# results = {'num_m': [], 'rank': [], 'time': []}
 
-# Boucle pour tester différentes valeurs de num_n
-for num_m in [1, 2, 3, 4, 5]:
-    start = time.time()
+# # Boucle pour tester différentes valeurs de num_n
+# for num_m in [1, 2, 3, 4, 5]:
+#     start = time.time()
     
-    initial_population = hybrid_initialize_population(sqrt_matrix, 1000)
-    best  = select_promising_masks(initial_population, sqrt_matrix, "Best", 1)
+#     initial_population = hybrid_initialize_population(sqrt_matrix, 1000)
+#     best  = select_promising_masks(initial_population, sqrt_matrix, "Best", 1)
     
-    for idx in best:
-        print(initial_population[idx])
-        best_mask, best_rank, tabu_masks = tabu_search_with_plot(
-            sqrt_matrix, initial_population[idx],
-            tot_resets=3,
-            num_n=default_num_n,
-            num_m=num_m,
-            tabu_size=default_tabu_size,
-            max_no_improve=default_max_no_improve,
-            max_iterations=10000
-        )
-        stop = time.time()
+#     for idx in best:
+#         print(initial_population[idx])
+#         best_mask, best_rank, tabu_masks = tabu_search_with_plot(
+#             sqrt_matrix, initial_population[idx],
+#             tot_resets=3,
+#             num_n=default_num_n,
+#             num_m=num_m,
+#             tabu_size=default_tabu_size,
+#             max_no_improve=default_max_no_improve,
+#             max_iterations=10000
+#         )
+#         stop = time.time()
         
-        # Stocker les résultats
-        results['num_m'].append(num_m)
-        results['rank'].append(best_rank)
-        results['time'].append(stop - start)
-        print(f"num_n = {num_n}, Rang = {best_rank}, Temps = {(stop - start):.2f} sec")
+#         # Stocker les résultats
+#         results['num_m'].append(num_m)
+#         results['rank'].append(best_rank)
+#         results['time'].append(stop - start)
+#         print(f"num_n = {num_n}, Rang = {best_rank}, Temps = {(stop - start):.2f} sec")
     
 
-plt.figure(figsize=(10, 6))
-plt.plot(results['num_m'], results['rank'], marker='o', linestyle='-', color='b')
-plt.title("Influence de num_m sur le Rang obtenu")
-plt.xlabel("num_m (nombre de modifications)")
-plt.ylabel("Rang minimal obtenu")
-plt.grid()
-plt.show()
+# plt.figure(figsize=(10, 6))
+# plt.plot(results['num_m'], results['rank'], marker='o', linestyle='-', color='b')
+# plt.title("Influence de num_m sur le Rang obtenu")
+# plt.xlabel("num_m (nombre de modifications)")
+# plt.ylabel("Rang minimal obtenu")
+# plt.grid()
+# plt.show()
 
 
-results_tabu = {'tabu_size': [], 'rank': [], 'time': []}
+# results_tabu = {'tabu_size': [], 'rank': [], 'time': []}
 
-for tabu_size in [10, 100, 1000, 10000]:
-    initial_population = hybrid_initialize_population(sqrt_matrix, 1000)
-    best  = select_promising_masks(initial_population, sqrt_matrix, "Best", 1)
+# for tabu_size in [10, 100, 1000, 10000]:
+#     initial_population = hybrid_initialize_population(sqrt_matrix, 1000)
+#     best  = select_promising_masks(initial_population, sqrt_matrix, "Best", 1)
     
-    for idx in best:
-        print(initial_population[idx])
-        start = time.time()
-        best_mask, best_rank, tabu_masks = tabu_search_with_plot(
-            sqrt_matrix, initial_population[idx],
-            tot_resets=3,
-            num_n=default_num_n,
-            num_m=default_num_m,
-            tabu_size=tabu_size,
-            max_no_improve=default_max_no_improve,
-            max_iterations=10000
-        )
-        stop = time.time()
+#     for idx in best:
+#         print(initial_population[idx])
+#         start = time.time()
+#         best_mask, best_rank, tabu_masks = tabu_search_with_plot(
+#             sqrt_matrix, initial_population[idx],
+#             tot_resets=3,
+#             num_n=default_num_n,
+#             num_m=default_num_m,
+#             tabu_size=tabu_size,
+#             max_no_improve=default_max_no_improve,
+#             max_iterations=10000
+#         )
+#         stop = time.time()
         
-        results_tabu['tabu_size'].append(tabu_size)
-        results_tabu['rank'].append(best_rank)
-        results_tabu['time'].append(stop - start)
+#         results_tabu['tabu_size'].append(tabu_size)
+#         results_tabu['rank'].append(best_rank)
+#         results_tabu['time'].append(stop - start)
 
-plt.figure(figsize=(10, 6))
-plt.plot(results_tabu['tabu_size'], results_tabu['rank'], marker='o', linestyle='-', color='g')
-plt.title("Influence de tabu_size sur le Rang obtenu")
-plt.xlabel("tabu_size")
-plt.ylabel("Rang minimal obtenu")
-plt.grid()
-plt.show()
+# plt.figure(figsize=(10, 6))
+# plt.plot(results_tabu['tabu_size'], results_tabu['rank'], marker='o', linestyle='-', color='g')
+# plt.title("Influence de tabu_size sur le Rang obtenu")
+# plt.xlabel("tabu_size")
+# plt.ylabel("Rang minimal obtenu")
+# plt.grid()
+# plt.show()
 
-plt.figure(figsize=(10, 6))
-plt.plot(results_tabu['tabu_size'], results_tabu['time'], marker='s', linestyle='--', color='m')
-plt.title("Influence de tabu_size sur le Temps d'exécution")
-plt.xlabel("tabu_size")
+# plt.figure(figsize=(10, 6))
+# plt.plot(results_tabu['tabu_size'], results_tabu['time'], marker='s', linestyle='--', color='m')
+# plt.title("Influence de tabu_size sur le Temps d'exécution")
+# plt.xlabel("tabu_size")

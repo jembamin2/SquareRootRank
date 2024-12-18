@@ -166,7 +166,7 @@ def matrices2_slackngon(n):
 #matrix = matrices1_ledm(35)
 #matrix=read_matrix("test(pas unitaire)/slack7gon_matrice.txt")
 #matrix=matrices2_slackngon(15)
-matrix=read_matrix("test(pas unitaire)/synthetic_matrice.txt")
+matrix=read_matrix("file.txt")
 n,m=matrix.shape
 sqrt_matrix=setup_sqrt_matrix(matrix)
 
