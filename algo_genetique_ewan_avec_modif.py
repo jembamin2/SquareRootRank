@@ -179,10 +179,9 @@ def save_matrix(M, P):
     file_name = False
 
     for file in existing_files:
-        print('save')
         try:
             # Extract rank from the filename
-            rank_in_file = int(file.split('')[1].split('.')[0][4:])  # Extract "5" from "output_rank5..."
+            rank_in_file = int(file.split('_')[1].split('.')[0][4:])  # Extract "5" from "output_rank5..."
             # print(rank_in_file, " vs ", current_rank)
             if rank_in_file > current_rank:
                 # print("here")
