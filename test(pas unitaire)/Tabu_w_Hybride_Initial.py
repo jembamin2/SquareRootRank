@@ -123,6 +123,10 @@ def fobj(M):
     sing_values = np.linalg.svd(M, compute_uv=False)
     tol = max(M.shape) * sing_values[0] * np.finfo(float).eps
     ind_nonzero = np.where(sing_values > tol)[0]
+    
+    if len(ind_nonzero) == 0:  # Handle case with no nonzero singular values
+        return float('Inf'),  0
+
     return len(ind_nonzero), sing_values[ind_nonzero[-1]]
 
 def fobj2(M, P):
@@ -468,15 +472,21 @@ def hierarchical_block_tabu_heuristic(matrix, initial_block_size=2, scaling_fact
     block_size = initial_block_size
     
     while block_size <= k:
-        num_blocks_m = (m + block_size - 1) // block_size
-        num_blocks_n = (n + block_size - 1) // block_size
+        num_blocks_m = (m + block_size - 1) // block_size  # Ensure we cover all rows
+        num_blocks_n = (n + block_size - 1) // block_size  # Ensure we cover all columns
 
         for i in range(num_blocks_m):
             for j in range(num_blocks_n):
-                block = matrix[i * block_size : min((i + 1) * block_size, m), j * block_size : min((j + 1) * block_size, n)]
-                block_mask_initial = global_mask[i * block_size : min((i + 1) * block_size, m), j * block_size : min((j + 1) * block_size, n)]
+                # Ensure the block fits inside the matrix, even at the edges
+                block = matrix[i * block_size : min((i + 1) * block_size, m), 
+                               j * block_size : min((j + 1) * block_size, n)]
+                block_mask_initial = global_mask[i * block_size : min((i + 1) * block_size, m),
+                                                 j * block_size : min((j + 1) * block_size, n)]
+                
                 block_mask, _ = tabu_block(block, block_mask_initial)
-                global_mask[i * block_size : min((i + 1) * block_size, m),  j * block_size : min((j + 1) * block_size, n)] = block_mask
+                
+                global_mask[i * block_size : min((i + 1) * block_size, m), 
+                            j * block_size : min((j + 1) * block_size, n)] = block_mask
 
         block_size *= scaling_factor
 
@@ -714,10 +724,10 @@ def dynamic_neigh_modulation(iteration, max_iterations, initial_neighbors, initi
 
 #%%
 if __name__ == "__main__":
-    #original_matrix = read_matrix("synthetic_matrice.txt")
+    original_matrix = read_matrix("synthetic_matrice.txt")
     #original_matrix = read_matrix("correl5_matrice.txt")
-    #original_matrix = matrices1_ledm(50)
-    original_matrix = np.random.randint(0, 20, size=(15, 10))
+    #original_matrix = matrices1_ledm(120)
+    #original_matrix = np.random.randint(0, 20, size=(15, 10))
     
     sqrt_matrix = np.sqrt(original_matrix)
     in_rank, s = fobj(sqrt_matrix)
@@ -729,6 +739,8 @@ if __name__ == "__main__":
     initial_population = hybrid_initialize_population(sqrt_matrix, 1000)
     best  = select_promising_masks(initial_population, sqrt_matrix, "Best", 1)
     
+    
+#%%    
     for idx in best:
         print(initial_population[idx])
 
@@ -736,8 +748,8 @@ if __name__ == "__main__":
         best_mask, best_rank, tabu_masks = tabu_search_with_plot(
             sqrt_matrix, initial_population[idx],
             tot_resets = 5,
-            num_n = 1000,
-            num_m = 3,
+            num_n = 2000,
+            num_m = 1,
             tabu_size=1000, 
             max_no_improve=100, 
             max_iterations=10000)
