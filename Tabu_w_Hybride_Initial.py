@@ -1,4 +1,4 @@
-
+import matplotlib.pyplot as plt
 import numpy as np
 import time
 from scipy.linalg import circulant
