@@ -1,4 +1,4 @@
-import matplotlib.pyplot as plt
+
 import numpy as np
 import time
 from scipy.linalg import circulant
@@ -113,6 +113,10 @@ def fobj(M):
     sing_values = np.linalg.svd(M, compute_uv=False)
     tol = max(M.shape) * sing_values[0] * np.finfo(float).eps
     ind_nonzero = np.where(sing_values > tol)[0]
+
+    if len(ind_nonzero) == 0:  # Handle case with no nonzero singular values
+        return float('Inf'),  0
+    
     return len(ind_nonzero), sing_values[ind_nonzero[-1]]
 
 def fobj2(M, P):
@@ -459,15 +463,21 @@ def hierarchical_block_tabu_heuristic(matrix, initial_block_size=2, scaling_fact
     block_size = initial_block_size
     
     while block_size <= k:
-        num_blocks_m = (m + block_size - 1) // block_size
-        num_blocks_n = (n + block_size - 1) // block_size
+        num_blocks_m = (m + block_size - 1) // block_size  # Ensure we cover all rows
+        num_blocks_n = (n + block_size - 1) // block_size  # Ensure we cover all columns
 
         for i in range(num_blocks_m):
             for j in range(num_blocks_n):
-                block = matrix[i * block_size : min((i + 1) * block_size, m), j * block_size : min((j + 1) * block_size, n)]
-                block_mask_initial = global_mask[i * block_size : min((i + 1) * block_size, m), j * block_size : min((j + 1) * block_size, n)]
+                # Ensure the block fits inside the matrix, even at the edges
+                block = matrix[i * block_size : min((i + 1) * block_size, m), 
+                               j * block_size : min((j + 1) * block_size, n)]
+                block_mask_initial = global_mask[i * block_size : min((i + 1) * block_size, m),
+                                                 j * block_size : min((j + 1) * block_size, n)]
+                
                 block_mask, _ = tabu_block(block, block_mask_initial)
-                global_mask[i * block_size : min((i + 1) * block_size, m),  j * block_size : min((j + 1) * block_size, n)] = block_mask
+                
+                global_mask[i * block_size : min((i + 1) * block_size, m), 
+                            j * block_size : min((j + 1) * block_size, n)] = block_mask
 
         block_size *= scaling_factor
 
