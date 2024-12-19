@@ -59,7 +59,7 @@ def matrices1_ledm(n):
 def init_genetique(m,n, nb_pop):
     pop = []
     for _ in range(nb_pop):
-        mask = np.random.choice([ 1], size=(n,m ))
+        mask = read_matrix("mask.txt")
         pop.append(mask)
     return pop
 
@@ -233,7 +233,7 @@ def save_matrix(M, P):
 #matrix = matrices1_ledm(35)
 #matrix=read_matrix("test(pas unitaire)/slack7gon_matrice.txt")
 #matrix=matrices2_slackngon(15)
-matrix=read_matrix("file.txt")
+matrix=read_matrix("MARO011_challenge_moyenne.txt")
 n,m=matrix.shape
 sqrt_matrix=setup_sqrt_matrix(matrix)
 
