@@ -7,6 +7,7 @@ import random
 import hashlib
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+import os
 
 #%%
 def read_matrix(input):
@@ -58,7 +59,7 @@ def matrices1_ledm(n):
 def init_genetique(m,n, nb_pop):
     pop = []
     for _ in range(nb_pop):
-        mask = np.random.choice([ 1], size=(m,n ))
+        mask = np.random.choice([ 1], size=(n,m ))
         pop.append(mask)
     return pop
 
@@ -161,7 +162,73 @@ def matrices2_slackngon(n):
       M[i,0] = 0
   return M
 
+def save_matrix(M, P):
+    # Calculate singular values
+    sing_values = np.linalg.svd(P * M, compute_uv=False)
+    tol = max(M.shape) * sing_values[0] * np.finfo(float).eps
+    ind_nonzero = np.where(sing_values > tol)[0]
 
+    # Current rank and largest singular value
+    current_rank = len(ind_nonzero)
+    smallest_singular_value = sing_values[ind_nonzero[-1]]
+
+    # Check for existing files
+    existing_files = [f for f in os.listdir('.') if f.startswith("output_rank")]
+    # print(len(existing_files), current_rank)
+    # random_component = random.randint(1, 999999)
+    file_name = False
+
+    for file in existing_files:
+        try:
+            # Extract rank from the filename
+            rank_in_file = int(file.split('_')[1].split('.')[0][4:])  # Extract "5" from "output_rank5..."
+            # print(rank_in_file, " vs ", current_rank)
+            if rank_in_file > current_rank:
+                # print("here")
+                file_name = f"output_rank{current_rank}.txt"
+
+                # Save the new file
+                with open(file_name, 'w') as fout:
+                    np.savetxt(fout, P, fmt='%.0f', delimiter=' ')
+                    for i in ind_nonzero:
+                        fout.write(f'{sing_values[i]}\n')
+                
+                break
+
+            # If the file has the same rank, compare singular values
+            elif rank_in_file == current_rank:
+                # print(rank_in_file, " vs ", current_rank)
+                # print("heerreeee")
+                with open(file, 'r') as f:
+                    lines = f.readlines()
+                    # Read the last singular value in the file
+                    last_saved_singular_value = float(lines[-1].strip())
+                    # print(f"Last saved singular value: {last_saved_singular_value}")
+                    # print(f"Smallest singular value: {smallest_singular_value}")
+                    if last_saved_singular_value > smallest_singular_value:
+                        file_name = f"output_rank{current_rank}.txt"
+
+                        # Save the new file
+                        with open(file_name, 'w') as fout:
+                            np.savetxt(fout, P, fmt='%.0f', delimiter=' ')
+                            for i in ind_nonzero:
+                                fout.write(f'{sing_values[i]}\n')
+                break
+
+        except (IndexError, ValueError, FileNotFoundError):
+            continue
+
+    if existing_files == []:
+        # print("hereAMIE")
+        file_name = f"output_rank{current_rank}.txt"
+
+        # Save the new file
+        with open(file_name, 'w') as fout:
+            np.savetxt(fout, P, fmt='%.0f', delimiter=' ')
+            for i in ind_nonzero:
+                fout.write(f'{sing_values[i]}\n')
+    # if file_name:
+        # print(f"Matrix saved to {file_name}")
 
 #matrix = matrices1_ledm(35)
 #matrix=read_matrix("test(pas unitaire)/slack7gon_matrice.txt")
@@ -177,7 +244,7 @@ tol=1e-14
 min_rank=min(m, n)
 best_mask=np.zeros((m, n))
 
-iterations=10000
+iterations=1000
 rank_evolution=np.zeros(iterations)
 
 nb_pop=200
@@ -211,6 +278,7 @@ with tqdm(total=iterations) as pbar:
            
             
         else:
+            save_matrix(sqrt_matrix, pop[0])
             type_mut=0
             counter=0
             mutations=nb_mut
@@ -244,6 +312,13 @@ if np.allclose((((U@S)@Vh)**2), matrix, atol=tol):
     print('True')
 else:
     print('False')
+#%%
+test=((U@S)@Vh)**2
+
+
+
+
+
 #%%
 
 plt.plot(rank_evolution)
